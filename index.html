@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OncoChex — Clinical Verifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --col-bg: #f0f2f7;
+            --col-surface: rgba(255,255,255,0.85);
+            --col-border: rgba(200,210,230,0.7);
+            --col-accent: #4f46e5;
+            --col-accent-light: #eef2ff;
+            --col-green: #16a34a;
+            --col-amber: #b45309;
+            --col-red: #dc2626;
+            --col-text: #1e293b;
+            --col-muted: #64748b;
+            --col-header-bg: #0f172a;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow-card: 0 2px 16px rgba(15,23,42,0.07), 0 0 0 1px rgba(200,210,230,0.5);
+            --shadow-input: inset 0 1px 3px rgba(15,23,42,0.06);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Prompt', sans-serif;
+            background: var(--col-bg);
+            color: var(--col-text);
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 12px;
+        }
+
+        /* Subtle mesh gradient background */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 10% 0%, rgba(99,102,241,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 90% 100%, rgba(168,85,247,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 50% 50%, rgba(14,165,233,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ---- Header ---- */
+        header {
+            background: #070d1a;
+            border-radius: var(--radius);
+            padding: 0 24px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            position: relative;
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.04) inset;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        /* ---- Cards ---- */
+        .card {
+            background: var(--col-surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--col-border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        /* ---- Section Title ---- */
+        .section-label {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .section-label .num {
+            background: var(--col-accent-light);
+            color: var(--col-accent);
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        /* ---- Field labels (left panel) ---- */
+        .field-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 5px;
+            letter-spacing: 0.01em;
+        }
+
+        /* ---- Inputs ---- */
+        .inp {
+            width: 100%;
+            background: #fff;
+            border: 1.5px solid #dde3ef;
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--col-text);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            box-shadow: var(--shadow-input);
+            font-family: inherit;
+        }
+        .inp:focus {
+            outline: none;
+            border-color: var(--col-accent);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.12), var(--shadow-input);
+            background: #fff;
+        }
+        .inp:disabled {
+            background: #f8fafc;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .inp[type="number"] {
+            font-family: ui-monospace, 'SF Mono', monospace;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        /* ---- Metric Display ---- */
+        .metric-val {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            font-family: ui-monospace, 'SF Mono', monospace;
+        }
+        .metric-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--col-muted);
+        }
+
+        /* ---- Lab Badges ---- */
+        .lab-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            border: 1.5px solid;
+        }
+        .lab-pass { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .lab-fail { 
+            background: #fef2f2; color: #991b1b; border-color: #fca5a5;
+            animation: pulse-soft 1.5s infinite;
+            box-shadow: 0 0 8px rgba(220,38,38,0.25);
+            font-weight: 900 !important;
+        }
+        .lab-empty { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+
+        @keyframes pulse-soft { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+
+        /* ---- Drug Row ---- */
+        .drug-row {
+            background: #fff;
+            border-radius: 10px;
+            border: 1.5px solid #e8edf5;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            box-shadow: 0 1px 4px rgba(15,23,42,0.04);
+        }
+        .drug-row:hover {
+            box-shadow: 0 3px 12px rgba(15,23,42,0.08);
+        }
+
+        /* ---- Calc Dose Display ---- */
+        .calc-dose {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--col-accent);
+            font-family: ui-monospace, 'SF Mono', monospace;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        /* ---- Variance Badges (drug row) ---- */
+        .var-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            min-height: 56px;
+            padding: 6px 8px;
+            border: 1.5px solid;
+            text-align: center;
+            flex: 1;
+        }
+        .var-safe   { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+        .var-warn   { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+        .var-danger { background: #fef2f2; color: #991b1b; border-color: #fca5a5; animation: pulse-soft 1.5s infinite; }
+        .var-empty  { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+
+        /* ---- PREMIUM HEADER CANVAS + ANIMATIONS ---- */
+        #hdr-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Animated aurora behind title */
+        @keyframes aurora-drift {
+            0%   { transform: translate(0, 0) scale(1); opacity: 0.35; }
+            33%  { transform: translate(30px, -10px) scale(1.15); opacity: 0.5; }
+            66%  { transform: translate(-20px, 8px) scale(0.9); opacity: 0.3; }
+            100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
+        }
+        .hdr-aurora {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(38px);
+            pointer-events: none;
+        }
+        .hdr-aurora-1 { width:160px;height:100px;background:#4f46e5;top:-20px;left:80px;animation:aurora-drift 6s ease-in-out infinite; }
+        .hdr-aurora-2 { width:120px;height:80px;background:#7c3aed;top:10px;left:180px;animation:aurora-drift 8s ease-in-out infinite reverse;animation-delay:-2s; }
+        .hdr-aurora-3 { width:80px;height:60px;background:#06b6d4;top:-10px;left:250px;animation:aurora-drift 5s ease-in-out infinite;animation-delay:-1s; }
+
+        /* Title letter animation */
+        @keyframes letter-glow {
+            0%,100% { text-shadow: 0 0 0 transparent; }
+            50% { text-shadow: 0 0 20px rgba(99,102,241,0.8), 0 0 40px rgba(99,102,241,0.4); }
+        }
+        .hdr-title {
+            font-size: 26px; font-weight: 900; color: #fff;
+            letter-spacing: -0.04em; line-height: 1;
+            animation: letter-glow 3s ease-in-out infinite;
+            position: relative; z-index: 2;
+        }
+        .hdr-title span {
+            display: inline-block;
+            animation: letter-glow 3s ease-in-out infinite;
+        }
+        .hdr-title span:nth-child(1){ animation-delay:0s }
+        .hdr-title span:nth-child(2){ animation-delay:0.15s }
+        .hdr-title span:nth-child(3){ animation-delay:0.3s }
+        .hdr-title span:nth-child(4){ animation-delay:0.45s }
+        .hdr-title span:nth-child(5){ animation-delay:0.6s }
+        .hdr-title span:nth-child(6){ animation-delay:0.75s }
+        .hdr-title span:nth-child(7){ animation-delay:0.9s }
+
+        /* Pill icon spin-float */
+        @keyframes pill-float {
+            0%,100% { transform: translateY(0) rotate(-8deg); }
+            50%      { transform: translateY(-5px) rotate(8deg); }
+        }
+        .hdr-pill { animation: pill-float 3s ease-in-out infinite; }
+
+        /* Scanning line sweep */
+        @keyframes scan-sweep {
+            0%   { left: -10%; opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { left: 110%; opacity: 0; }
+        }
+        .hdr-scan {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, transparent, rgba(99,102,241,0.8), rgba(167,139,250,1), rgba(99,102,241,0.8), transparent);
+            filter: blur(2px);
+            animation: scan-sweep 4s ease-in-out infinite;
+            animation-delay: 1s;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .hdr-scan-2 {
+            animation-delay: 3.5s;
+            background: linear-gradient(180deg, transparent, rgba(6,182,212,0.7), rgba(34,211,238,1), rgba(6,182,212,0.7), transparent);
+        }
+
+        /* Bottom neon border */
+        .hdr-neon-border {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1.5px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(99,102,241,0) 10%,
+                rgba(99,102,241,0.9) 30%,
+                rgba(167,139,250,1) 50%,
+                rgba(6,182,212,0.9) 70%,
+                rgba(6,182,212,0) 90%,
+                transparent 100%
+            );
+            animation: neon-pulse 2.5s ease-in-out infinite;
+            z-index: 3;
+        }
+        @keyframes neon-pulse {
+            0%,100% { opacity: 0.6; filter: blur(0px); }
+            50% { opacity: 1; filter: blur(1px); }
+        }
+
+        /* DNA helix strand (right side decoration) */
+        @keyframes helix-rotate {
+            from { transform: rotateY(0deg); }
+            to   { transform: rotateY(360deg); }
+        }
+
+        /* Floating micro-badges */
+        @keyframes float-badge {
+            0%,100% { transform: translateY(0) rotate(-2deg); opacity: 0.7; }
+            50%     { transform: translateY(-6px) rotate(2deg); opacity: 1; }
+        }
+        .hdr-badge {
+            position: absolute;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 9px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .hdr-badge-1 { top:12px; right:220px; animation: float-badge 4s ease-in-out infinite; }
+        .hdr-badge-2 { bottom:12px; right:280px; animation: float-badge 5s ease-in-out infinite; animation-delay:-2s; }
+        .hdr-badge-3 { top:18px; right:340px; animation: float-badge 3.5s ease-in-out infinite; animation-delay:-1s; }
+
+        /* Status pulse ring */
+        @keyframes ring-expand {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        .status-ring {
+            position: absolute;
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: ring-expand 1.8s ease-out infinite;
+        }
+
+        /* ---- Body-bob (used for pill) ---- */
+        @keyframes body-bob {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-3px); }
+        }
+
+        /* ---- Protocol Strip Accent ---- */
+        .proto-strip {
+            border-top: 3px solid var(--col-accent);
+            border-radius: 0 0 var(--radius) var(--radius);
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        /* ---- Scrollbar ---- */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ---- Dose Reduction Badge ---- */
+        .dose-red-btn {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 2px 8px; border-radius: 20px; cursor: pointer;
+            font-size: 11px; font-weight: 800; border: 1.5px solid;
+            transition: all 0.15s; background: #fff;
+            font-family: inherit;
+        }
+        .dose-red-btn.active { background: #fef9c3; color: #854d0e; border-color: #fde047; }
+        .dose-red-btn.inactive { background: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
+        .dose-red-btn.full { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+
+        /* ---- Print styles ---- */
+        @media print {
+            header, .no-print { display: none !important; }
+            body { background: white; padding: 0; overflow: auto; height: auto; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+            main { flex-direction: column; }
+            aside { width: 100% !important; }
+        }
+
+        /* ---- Cumulative dose warning ---- */
+        .cumul-warn {
+            font-size: 9px; font-weight: 700; color: #dc2626;
+            background: #fef2f2; border: 1px solid #fecaca;
+            border-radius: 4px; padding: 1px 5px;
+            animation: pulse-soft 2s infinite;
+        }
+
+        /* ---- Chip ---- */
+        .chip {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 2px 8px; border-radius: 20px;
+            font-size: 9px; font-weight: 700;
+        }
+        .chip-amber { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+        .chip-blue  { background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; }
+        .chip-red   { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; animation: pulse-soft 2s infinite; }
+
+        /* ---- Btn ---- */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: var(--radius-sm);
+            font-size: 12px; font-weight: 700;
+            cursor: pointer; transition: all 0.15s;
+            border: none;
+        }
+        .btn-ghost {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.18); }
+        .btn-primary { background: var(--col-accent); color: #fff; box-shadow: 0 2px 8px rgba(79,70,229,0.3); }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-rose { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
+        .btn-rose:hover { background: #fee2e2; }
+
+        /* ---- Col Headers ---- */
+        .col-head {
+            font-size: 11px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.06em; color: #64748b;
+        }
+
+        /* ---- Lab Badges ---- */
+        .lab-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            border: 1.5px solid;
+        }
+
+        /* ---- Status dot ---- */
+        .dot-green { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; animation: pulse-soft 2s infinite; }
+
+        /* ---- Mobile adjustments ---- */
+        @media (max-width: 768px) {
+            body { padding: 8px; gap: 8px; overflow: auto; height: auto; }
+            .drug-row { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ OCR MODAL ════════════════════════════════════ -->
+<div id="ocr-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(10,15,30,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;padding:24px 28px;max-width:520px;width:92%;box-shadow:0 24px 60px rgba(0,0,0,0.4);position:relative;max-height:90vh;overflow-y:auto;">
+        <button onclick="closeOCR()" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;">✕</button>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📷</div>
+            <div>
+                <div style="font-size:16px;font-weight:900;color:#1e293b;">สแกน Chemo Order</div>
+                <div style="font-size:11px;color:#64748b;margin-top:1px;">ใช้ Claude AI อ่านลายมือ + ตัวพิมพ์ได้แม่นยำ</div>
+            </div>
+        </div>
+
+        <!-- API Key Section -->
+        <div id="ocr-apikey-section" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:11px;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:0.05em;">🔑 Anthropic API Key</span>
+                <a href="https://console.anthropic.com/keys" target="_blank" style="font-size:10px;color:#6366f1;font-weight:700;">สมัครฟรี →</a>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <input type="password" id="ocr-apikey-input" placeholder="sk-ant-api03-..." 
+                    style="flex:1;border:1.5px solid #dde3ef;border-radius:7px;padding:7px 10px;font-size:12px;font-family:monospace;font-weight:600;color:#1e293b;">
+                <button onclick="saveAPIKey()" style="background:#4f46e5;color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">บันทึก</button>
+            </div>
+            <div id="ocr-key-status" style="font-size:10px;color:#94a3b8;margin-top:5px;">กรอก API Key เพื่อใช้งาน Claude Vision (เก็บใน browser เท่านั้น)</div>
+        </div>
+
+        <!-- Drop Zone -->
+        <div id="ocr-dropzone"
+            ondragover="event.preventDefault();this.style.borderColor='#6366f1';this.style.background='#f0f0ff';"
+            ondragleave="this.style.borderColor='#c4b5fd';this.style.background='#fafaff';"
+            ondrop="handleOCRDrop(event)"
+            onclick="document.getElementById('ocr-file-input').click()"
+            style="border:2px dashed #c4b5fd;border-radius:12px;padding:26px 20px;text-align:center;cursor:pointer;background:#fafaff;transition:all 0.2s;margin-bottom:12px;">
+            <div style="font-size:32px;margin-bottom:6px;">🖼️</div>
+            <div style="font-size:13px;font-weight:700;color:#4f46e5;">ลากรูปมาวางที่นี่</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:3px;">หรือคลิกเพื่อเลือกไฟล์ · JPG, PNG</div>
+        </div>
+
+        <!-- Status -->
+        <div id="ocr-status" style="display:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;text-align:center;margin-bottom:10px;"></div>
+
+        <!-- Preview image -->
+        <div id="ocr-preview" style="display:none;margin-bottom:10px;">
+            <img id="ocr-img" style="max-width:100%;border-radius:8px;border:1px solid #e2e8f0;max-height:160px;object-fit:contain;display:block;margin:0 auto;">
+        </div>
+
+        <!-- Result -->
+        <div id="ocr-result" style="display:none;margin-bottom:10px;"></div>
+
+        <!-- Apply -->
+        <button id="ocr-apply-btn" onclick="applyOCRResult()" style="display:none;width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,0.3);">
+            ✅ ใช้ข้อมูลนี้เลย
+        </button>
+    </div>
+</div>
+
+<script>
+// ═══ OCR — Claude Vision + API Key ══════════════════════════════════
+let ocrParsed = null;
+
+// Load saved key on startup
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('onco_apikey');
+    if (saved) {
+        document.getElementById('ocr-apikey-input').value = saved;
+        document.getElementById('ocr-key-status').innerHTML = '✅ API Key บันทึกไว้แล้ว พร้อมใช้งาน';
+        document.getElementById('ocr-key-status').style.color = '#15803d';
+    }
+});
+
+function saveAPIKey() {
+    const key = document.getElementById('ocr-apikey-input').value.trim();
+    if (!key.startsWith('sk-ant')) {
+        document.getElementById('ocr-key-status').innerHTML = '❌ Key ไม่ถูกต้อง ต้องขึ้นต้นด้วย sk-ant...';
+        document.getElementById('ocr-key-status').style.color = '#dc2626';
+        return;
+    }
+    localStorage.setItem('onco_apikey', key);
+    document.getElementById('ocr-key-status').innerHTML = '✅ บันทึกแล้ว พร้อมใช้งาน';
+    document.getElementById('ocr-key-status').style.color = '#15803d';
+}
+
+function getAPIKey() {
+    return (document.getElementById('ocr-apikey-input').value.trim()) ||
+           (localStorage.getItem('onco_apikey') || '');
+}
+
+function openOCR() {
+    document.getElementById('ocr-modal').style.display = 'flex';
+    const saved = localStorage.getItem('onco_apikey');
+    if (saved) {
+        document.getElementById('ocr-apikey-input').value = saved;
+        document.getElementById('ocr-key-status').innerHTML = '✅ API Key บันทึกไว้แล้ว พร้อมใช้งาน';
+        document.getElementById('ocr-key-status').style.color = '#15803d';
+    }
+}
+
+function closeOCR() {
+    document.getElementById('ocr-modal').style.display = 'none';
+    ocrParsed = null;
+    ['ocr-status','ocr-preview','ocr-result'].forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById('ocr-apply-btn').style.display = 'none';
+    document.getElementById('ocr-dropzone').style.display = '';
+}
+
+function handleOCRFile(e) {
+    const file = e.target.files[0];
+    if (file) { openOCR(); processOCRFile(file); }
+    e.target.value = '';
+}
+function handleOCRDrop(e) {
+    e.preventDefault();
+    const dz = document.getElementById('ocr-dropzone');
+    dz.style.borderColor = '#c4b5fd'; dz.style.background = '#fafaff';
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('image/')) processOCRFile(file);
+}
+
+function setStatus(msg, type) {
+    const el = document.getElementById('ocr-status');
+    el.style.display = '';
+    const styles = {
+        info:    'background:#f0f9ff;border:1.5px solid #7dd3fc;color:#0369a1;',
+        success: 'background:#f0fdf4;border:1.5px solid #86efac;color:#15803d;',
+        warn:    'background:#fffbeb;border:1.5px solid #fcd34d;color:#92400e;',
+        error:   'background:#fef2f2;border:1.5px solid #fca5a5;color:#991b1b;'
+    };
+    el.style.cssText = (styles[type] || styles.info) + 'border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;text-align:center;margin-bottom:10px;';
+    el.innerHTML = msg;
+}
+
+async function processOCRFile(file) {
+    const apiKey = getAPIKey();
+    if (!apiKey) {
+        setStatus('❌ กรุณากรอก API Key ก่อน', 'error');
+        return;
+    }
+
+    // Read as base64
+    const dataUrl = await new Promise(res => {
+        const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file);
+    });
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+
+    // Show preview
+    document.getElementById('ocr-img').src = dataUrl;
+    document.getElementById('ocr-preview').style.display = '';
+    document.getElementById('ocr-dropzone').style.display = 'none';
+    setStatus('🔍 Claude กำลังอ่านใบ Order... รอสักครู่', 'info');
+
+    try {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 1000,
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+                        { type: 'text', text: `อ่านใบ Chemotherapy Order นี้ แล้วตอบเป็น JSON เท่านั้น ห้าม output อื่น:
+{
+  "wt": <น้ำหนัก kg ตัวเลขเท่านั้น หรือ null>,
+  "ht": <ส่วนสูง cm ตัวเลขเท่านั้น หรือ null>,
+  "bsa": <BSA m² ตัวเลขเท่านั้น หรือ null>,
+  "wbc": <WBC ตัวเลขเท่านั้น หรือ null>,
+  "anc": <ANC ตัวเลขเท่านั้น หรือ null>,
+  "hb": <Hb ตัวเลขเท่านั้น หรือ null>,
+  "plt": <Platelets ตัวเลข x1000 เช่น ถ้าเห็น 253000 ให้ใส่ 253 หรือ null>,
+  "scr": <Creatinine ตัวเลขเท่านั้น หรือ null>,
+  "neut_pct": <Neutrophil % ตัวเลขเท่านั้น หรือ null>,
+  "protocol": <ชื่อสูตรยาจาก header ของใบ order เช่น mFOLFOX6 หรือ null>,
+  "drugs": [{ "name": <ชื่อยา>, "dose_mg": <ขนาดยา mg ที่สั่ง ตัวเลขเท่านั้น หรือ null>, "diluent": <วิธีให้ยา หรือ null> }]
+}
+ข้อมูลที่ไม่แน่ใจหรือไม่เห็นชัดให้ใส่ null` }
+                    ]
+                }]
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.error?.message || `HTTP ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        const text = data.content?.map(c => c.text || '').join('') || '';
+        const match = text.match(/\{[\s\S]*\}/);
+        if (!match) throw new Error('ไม่พบ JSON ในผลลัพธ์');
+        ocrParsed = JSON.parse(match[0]);
+        showOCRPreview(ocrParsed);
+
+    } catch (err) {
+        setStatus(`❌ ${err.message}`, 'error');
+    }
+}
+
+function showOCRPreview(d) {
+    const fields = [
+        d.wt, d.ht, d.bsa, d.wbc, d.hb, d.plt, d.scr, d.protocol,
+        ...(d.drugs||[]).map(x => x.dose_mg)
+    ].filter(v => v !== null && v !== undefined);
+
+    if (!fields.length) {
+        setStatus('⚠️ อ่านได้แต่ไม่พบข้อมูลที่ชัดเจน', 'warn');
+        return;
+    }
+    setStatus('✅ อ่านสำเร็จ — ตรวจสอบก่อนกด "ใช้ข้อมูล"', 'success');
+
+    const row = (icon, label, val, unit='') =>
+        `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #f1f5f9;">
+            <span style="font-size:14px;">${icon}</span>
+            <span style="font-size:11px;font-weight:700;color:#64748b;min-width:80px;">${label}</span>
+            <span style="font-size:13px;font-weight:900;color:#1e293b;">${val} <span style="font-size:10px;font-weight:600;color:#94a3b8;">${unit}</span></span>
+        </div>`;
+
+    let html = '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;">';
+    html += '<div style="font-size:12px;font-weight:800;color:#334155;margin-bottom:8px;">📋 ข้อมูลที่อ่านได้</div>';
+
+    if (d.protocol) html += row('🧬', 'Protocol', `<span style="color:#4f46e5;">${d.protocol}</span>`);
+    if (d.wt)       html += row('⚖️', 'น้ำหนัก', d.wt, 'kg');
+    if (d.ht)       html += row('📏', 'ส่วนสูง', d.ht, 'cm');
+    if (d.bsa)      html += row('📐', 'BSA', d.bsa, 'm²');
+    if (d.scr)      html += row('🔬', 'SCr', d.scr, 'mg/dL');
+    if (d.wbc)      html += row('🩸', 'WBC', d.wbc);
+    if (d.anc)      html += row('🛡️', 'ANC', d.anc);
+    if (d.hb)       html += row('💉', 'Hb', d.hb, 'g/dL');
+    if (d.plt)      html += row('🟣', 'Plt (×10³)', d.plt);
+    if (d.neut_pct) html += row('🔵', 'Neutrophil', d.neut_pct, '%');
+
+    if (d.drugs?.length) {
+        html += '<div style="font-size:11px;font-weight:800;color:#334155;margin:10px 0 6px;">💊 รายการยา</div>';
+        d.drugs.forEach(drug => {
+            html += `<div style="background:#fff;border:1.5px solid #e0e7ff;border-radius:7px;padding:7px 10px;margin-bottom:5px;">
+                <div style="font-weight:800;color:#1e293b;font-size:13px;">${drug.name}
+                ${drug.dose_mg !== null ? `<span style="background:#eef2ff;color:#4f46e5;font-weight:900;padding:1px 8px;border-radius:5px;margin-left:6px;font-size:13px;">${drug.dose_mg} mg</span>` : ''}
+                </div>
+                ${drug.diluent ? `<div style="color:#64748b;font-size:10px;margin-top:2px;">${drug.diluent}</div>` : ''}
+            </div>`;
+        });
+    }
+    html += '</div>';
+
+    document.getElementById('ocr-result').innerHTML = html;
+    document.getElementById('ocr-result').style.display = '';
+    document.getElementById('ocr-apply-btn').style.display = '';
+}
+
+function applyOCRResult() {
+    if (!ocrParsed) return;
+    const d = ocrParsed;
+
+    // Patient data
+    if (d.wt)       { document.getElementById('wt').value  = d.wt; }
+    if (d.ht)       { document.getElementById('ht').value  = d.ht; }
+    if (d.scr)      { document.getElementById('scr').value = d.scr; }
+    if (d.wbc)      { document.getElementById('wbc').value = d.wbc; }
+    if (d.hb)       { document.getElementById('hb').value  = d.hb; }
+    if (d.plt)      { document.getElementById('plt').value = d.plt; }   // already ×10³
+    if (d.neut_pct) { document.getElementById('neut').value = d.neut_pct; }
+
+    // Rx doses — fuzzy name match
+    if (d.drugs?.length) {
+        d.drugs.forEach(drug => {
+            if (drug.dose_mg === null) return;
+            currentProtocolArray.forEach((_, i) => {
+                const nameEl = document.getElementById(`name-${i}`);
+                if (!nameEl) return;
+                const rowName = nameEl.value.toLowerCase();
+                const ocrName = (drug.name || '').toLowerCase();
+                const words = ocrName.split(/[\s\(\)]+/).filter(w => w.length > 3);
+                if (words.some(w => rowName.includes(w))) {
+                    const rxEl = document.getElementById(`rx-${i}`);
+                    if (rxEl) { rxEl.value = drug.dose_mg; updateSingleCard(i); }
+                }
+            });
+        });
+    }
+
+    calculateBiometrics();
+    closeOCR();
+
+    // Flash all filled inputs green
+    ['wt','ht','scr','wbc','hb','plt','neut'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el?.value) {
+            el.style.borderColor='#4ade80'; el.style.background='#f0fdf4';
+            setTimeout(() => { el.style.borderColor=''; el.style.background=''; }, 2000);
+        }
+    });
+}
+
+// Global drop anywhere
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file?.type.startsWith('image/')) { openOCR(); processOCRFile(file); }
+});
+</script>
+<header>
+    <!-- Canvas for particle field -->
+    <canvas id="hdr-canvas"></canvas>
+
+    <!-- Aurora blobs (behind everything) -->
+    <div class="hdr-aurora hdr-aurora-1"></div>
+    <div class="hdr-aurora hdr-aurora-2"></div>
+    <div class="hdr-aurora hdr-aurora-3"></div>
+
+    <!-- Scanning beams -->
+    <div class="hdr-scan"></div>
+    <div class="hdr-scan hdr-scan-2"></div>
+
+    <!-- Bottom neon border -->
+    <div class="hdr-neon-border"></div>
+
+    <!-- Floating micro-labels -->
+    <div class="hdr-badge hdr-badge-2">Clinical · Verified</div>
+    <div class="hdr-badge hdr-badge-3">Oncology · Rx</div>
+
+    <!-- LEFT: Logo + Title -->
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;position:relative;z-index:4;">
+        <div class="hdr-pill" style="width:50px;height:50px;flex-shrink:0;filter:drop-shadow(0 0 16px rgba(99,102,241,0.7))drop-shadow(0 0 30px rgba(99,102,241,0.3));">
+            <svg viewBox="0 0 100 100" style="width:100%;height:100%;">
+                <defs>
+                    <linearGradient id="capTop" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a5b4fc"/><stop offset="100%" stop-color="#4f46e5"/></linearGradient>
+                    <linearGradient id="capBot" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f8fafc"/><stop offset="100%" stop-color="#cbd5e1"/></linearGradient>
+                    <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <path d="M 25 50 Q 5 60 10 85 Q 25 75 35 60 Z" fill="#f43f5e" opacity="0.85"/>
+                <path d="M 75 50 Q 95 60 90 85 Q 75 75 65 60 Z" fill="#f43f5e" opacity="0.85"/>
+                <path d="M 35 50 L 35 28 C 35 13 65 13 65 28 L 65 50 Z" fill="url(#capTop)"/>
+                <path d="M 35 50 L 35 72 C 35 87 65 87 65 72 L 65 50 Z" fill="url(#capBot)"/>
+                <line x1="35" y1="50" x2="65" y2="50" stroke="#94a3b8" stroke-width="1.5" opacity="0.4"/>
+                <circle cx="43" cy="39" r="4" fill="white" opacity="0.95"/>
+                <circle cx="57" cy="39" r="4" fill="white" opacity="0.95"/>
+                <path d="M 45 46 Q 50 51 55 46" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M 50 59 L 52 63.5 L 57 63.5 L 53.5 66.5 L 55 71 L 50 68.5 L 45 71 L 46.5 66.5 L 43 63.5 L 48 63.5 Z" fill="#fbbf24" filter="url(#glow)"/>
+            </svg>
+        </div>
+        <div style="position:relative;z-index:2;">
+            <div class="hdr-title">
+                <span>O</span><span>n</span><span>c</span><span>o</span><span>C</span><span>h</span><span>e</span><span>x</span>
+            </div>
+            <div style="font-size:10px;font-weight:600;color:#6366f1;letter-spacing:0.12em;margin-top:3px;text-transform:uppercase;">Clinical Pharmacy Engine</div>
+        </div>
+    </div>
+
+    <!-- CENTER: DNA Helix + particle canvas area (visual only, drawn in JS) -->
+    <div style="flex:1;position:relative;z-index:2;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        <!-- Mini DNA helix SVG animated -->
+        <svg id="dna-svg" viewBox="0 0 300 56" style="width:100%;max-width:420px;height:56px;opacity:0.55;" fill="none">
+            <!-- Strand 1 -->
+            <path id="s1" d="" stroke="url(#dnaG1)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Strand 2 -->
+            <path id="s2" d="" stroke="url(#dnaG2)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Rungs -->
+            <g id="rungs"></g>
+            <defs>
+                <linearGradient id="dnaG1" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#6366f1"/>
+                    <stop offset="50%" stop-color="#a5b4fc"/>
+                    <stop offset="100%" stop-color="#06b6d4"/>
+                </linearGradient>
+                <linearGradient id="dnaG2" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#f43f5e"/>
+                    <stop offset="50%" stop-color="#fb7185"/>
+                    <stop offset="100%" stop-color="#fbbf24"/>
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+
+    <!-- RIGHT: Status + Reset -->
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;position:relative;z-index:4;">
+        <div style="text-align:right;">
+            <div style="font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.1em;">System</div>
+            <div style="font-size:12px;font-weight:800;color:#4ade80;display:flex;align-items:center;gap:6px;margin-top:2px;justify-content:flex-end;">
+                <div style="position:relative;width:7px;height:7px;">
+                    <div class="status-ring"></div>
+                    <div style="position:relative;z-index:1;width:7px;height:7px;border-radius:50%;background:#4ade80;"></div>
+                </div>
+                READY
+            </div>
+        </div>
+        <button onclick="resetApp()" class="btn btn-ghost" style="border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.1);color:#a5b4fc;">
+            <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            เริ่มใหม่
+        </button>
+    </div>
+</header>
+
+<style>
+@media (max-width: 768px) {
+    body { padding: 8px; gap: 8px; overflow: auto; height: auto; }
+    .drug-row { flex-wrap: wrap; }
+}
+</style>
+<script>
+// ═══════════════════════════════════════════════════
+//  PREMIUM HEADER: Canvas Particles + DNA Helix
+// ═══════════════════════════════════════════════════
+(function initHeaderFX() {
+    function run() {
+        // --- Canvas particle field ---
+        const canvas = document.getElementById('hdr-canvas');
+        if (!canvas) { setTimeout(run, 100); return; }
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const COLORS = ['#6366f1','#818cf8','#a5b4fc','#06b6d4','#22d3ee','#f43f5e','#fb7185'];
+        const particles = Array.from({length: 55}, () => ({
+            x: Math.random(),
+            y: Math.random(),
+            r: 0.8 + Math.random() * 1.8,
+            vx: (Math.random() - 0.5) * 0.00025,
+            vy: (Math.random() - 0.5) * 0.00025,
+            c: COLORS[Math.floor(Math.random() * COLORS.length)],
+            a: 0.3 + Math.random() * 0.5,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.015 + Math.random() * 0.02,
+        }));
+
+        function drawParticles() {
+            const W = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+
+            // Draw connection lines between close particles
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const pi = particles[i], pj = particles[j];
+                    const dx = (pi.x - pj.x) * W;
+                    const dy = (pi.y - pj.y) * H;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 80) {
+                        ctx.beginPath();
+                        ctx.moveTo(pi.x * W, pi.y * H);
+                        ctx.lineTo(pj.x * W, pj.y * H);
+                        ctx.strokeStyle = `rgba(99,102,241,${0.12 * (1 - dist / 80)})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Draw particles
+            particles.forEach(p => {
+                p.pulse += p.pulseSpeed;
+                const pulsedR = p.r * (0.85 + 0.3 * Math.sin(p.pulse));
+                const pulsedA = p.a * (0.7 + 0.3 * Math.sin(p.pulse + 1));
+
+                ctx.beginPath();
+                ctx.arc(p.x * W, p.y * H, pulsedR, 0, Math.PI * 2);
+                ctx.fillStyle = p.c + Math.round(pulsedA * 255).toString(16).padStart(2, '0');
+                ctx.fill();
+
+                // Glow
+                const grad = ctx.createRadialGradient(p.x*W, p.y*H, 0, p.x*W, p.y*H, pulsedR * 4);
+                grad.addColorStop(0, p.c + '30');
+                grad.addColorStop(1, 'transparent');
+                ctx.beginPath();
+                ctx.arc(p.x * W, p.y * H, pulsedR * 4, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+                if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+            });
+
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+
+        // --- DNA Helix SVG animation ---
+        let dnaPhase = 0;
+        function animateDNA() {
+            dnaPhase += 0.04;
+            const svg = document.getElementById('dna-svg');
+            if (!svg) return;
+            const W = 300, H = 56, cx = H / 2;
+            const amp = 18;
+            const steps = 60;
+
+            let d1 = '', d2 = '';
+            for (let i = 0; i <= steps; i++) {
+                const x = (i / steps) * W;
+                const t = (i / steps) * Math.PI * 4 + dnaPhase;
+                const y1 = cx + Math.sin(t) * amp;
+                const y2 = cx + Math.sin(t + Math.PI) * amp;
+                d1 += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y1.toFixed(1) + ' ';
+                d2 += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y2.toFixed(1) + ' ';
+            }
+            document.getElementById('s1').setAttribute('d', d1);
+            document.getElementById('s2').setAttribute('d', d2);
+
+            // Rungs
+            const rungsEl = document.getElementById('rungs');
+            const rungCount = 10;
+            let rungs = '';
+            for (let r = 0; r <= rungCount; r++) {
+                const i = Math.round((r / rungCount) * steps);
+                const x = (i / steps) * W;
+                const t = (i / steps) * Math.PI * 4 + dnaPhase;
+                const y1 = cx + Math.sin(t) * amp;
+                const y2 = cx + Math.sin(t + Math.PI) * amp;
+                const highlight = Math.abs(Math.sin(t)) < 0.2;
+                const color = highlight ? '#a5b4fc' : 'rgba(148,163,184,0.3)';
+                const width = highlight ? '1.5' : '0.8';
+                rungs += `<line x1="${x.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>`;
+            }
+            rungsEl.innerHTML = rungs;
+            requestAnimationFrame(animateDNA);
+        }
+        animateDNA();
+    }
+    window.addEventListener('DOMContentLoaded', run);
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════ -->
+<main style="flex:1;display:flex;flex-direction:row;gap:10px;min-height:0;position:relative;z-index:1;">
+
+    <!-- ─────────────────────────────────────
+         LEFT PANEL
+    ───────────────────────────────────── -->
+    <aside style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;height:100%;overflow:hidden;">
+
+        <!-- Demographics -->
+        <div class="card" style="padding:14px 16px;border-top:3px solid #4f46e5;">
+            <div class="section-label">
+                <span class="num">1</span> ข้อมูลคนไข้
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div>
+                    <div class="field-label">Wt (kg)</div>
+                    <input type="number" id="wt" class="inp nav-input" placeholder="น้ำหนัก">
+                </div>
+                <div>
+                    <div class="field-label">Ht (cm)</div>
+                    <input type="number" id="ht" class="inp nav-input" placeholder="ส่วนสูง">
+                </div>
+                <div>
+                    <div class="field-label">Age (ปี)</div>
+                    <input type="number" id="age" class="inp nav-input" placeholder="อายุ">
+                </div>
+                <div>
+                    <div class="field-label">Sex</div>
+                    <select id="sex" class="inp nav-input">
+                        <option value="M">ชาย (M)</option>
+                        <option value="F">หญิง (F)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Labs -->
+        <div class="card" style="padding:14px 16px;border-top:3px solid #ec4899;">
+            <div class="section-label">
+                <span class="num" style="background:#fdf2f8;color:#be185d;">2</span> ผลเลือด (Labs)
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div>
+                    <div class="field-label">SCr (mg/dL)</div>
+                    <input type="number" step="0.1" id="scr" class="inp nav-input" placeholder="SCr">
+                </div>
+                <div>
+                    <div class="field-label">Hb (g/dL)</div>
+                    <input type="number" step="0.1" id="hb" class="inp nav-input" placeholder="Hb">
+                </div>
+                <div>
+                    <div class="field-label">WBC (/mm³)</div>
+                    <input type="number" id="wbc" class="inp nav-input" placeholder="WBC">
+                </div>
+                <div>
+                    <div class="field-label">Neutrophil (%)</div>
+                    <input type="number" id="neut" class="inp nav-input" placeholder="%Neut">
+                </div>
+                <div style="grid-column:1/-1;">
+                    <div class="field-label">Platelets <span style="color:#4f46e5;font-weight:700;">(พิมพ์ค่า ×10³)</span></div>
+                    <input type="number" id="plt" class="inp nav-input" placeholder="เช่น 150">
+                </div>
+            </div>
+        </div>
+
+        <!-- Safety Summary Card -->
+        <div class="card" style="padding:12px 16px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+            <!-- Safety Banner -->
+            <div id="safety-banner" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:7px 12px;text-align:center;"></div>
+
+            <!-- Lab Badges -->
+            <div style="display:flex;flex-direction:column;gap:6px;" id="safety-badges">
+                <span style="font-size:11px;color:#94a3b8;text-align:center;">รอข้อมูลผลแล็บ...</span>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ─────────────────────────────────────
+         RIGHT PANEL
+    ───────────────────────────────────── -->
+    <section class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-top:3px solid #4f46e5;">
+
+        <!-- Protocol Header -->
+        <div style="padding:12px 16px;border-bottom:1px solid #e8edf5;flex-shrink:0;background:rgba(248,250,252,0.6);">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div class="section-label" style="margin:0;flex-shrink:0;">
+                    <span class="num">3</span> สูตรยา
+                </div>
+
+                <!-- Search input - fixed max width -->
+                <div style="position:relative;width:260px;flex-shrink:0;">
+                    <input type="text" id="protocol-select" list="protocol-options"
+                        class="inp nav-input"
+                        style="font-size:13px;font-weight:800;color:#1e293b;padding-right:32px;"
+                        placeholder="🔍 ค้นหาหรือเลือกสูตรยา..."
+                        autocomplete="off">
+                    <datalist id="protocol-options"></datalist>
+                    <button onclick="clearProtocol()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:2px;color:#94a3b8;line-height:0;" title="ล้าง">
+                        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Up/Down -->
+                <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
+                    <button onclick="prevProtocol()" style="background:#f1f5f9;border:1.5px solid #dde3ef;color:#4f46e5;border-radius:6px 6px 0 0;padding:2px 7px;cursor:pointer;line-height:0;" title="ก่อนหน้า">
+                        <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg>
+                    </button>
+                    <button onclick="nextProtocol()" style="background:#f1f5f9;border:1.5px solid #dde3ef;border-top:none;color:#4f46e5;border-radius:0 0 6px 6px;padding:2px 7px;cursor:pointer;line-height:0;" title="ถัดไป">
+                        <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                    </button>
+                </div>
+
+                <!-- OCR Scan Button -->
+                <button onclick="document.getElementById('ocr-file-input').click()" 
+                    style="background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(14,165,233,0.3);flex-shrink:0;display:flex;align-items:center;gap:5px;"
+                    title="สแกน Order จากรูปภาพ">
+                    📷 สแกน Order
+                </button>
+                <input type="file" id="ocr-file-input" accept="image/*" style="display:none;" onchange="handleOCRFile(event)">
+
+                <!-- Custom Protocol -->
+                <button onclick="initCustomProtocol()"
+                    style="background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(124,58,237,0.25);flex-shrink:0;">
+                    ✨ สร้างสูตรเอง
+                </button>
+
+                <!-- Add Custom Drug -->
+                <button id="add-custom-btn" onclick="addCustomDrug()"
+                    style="display:none;background:#eff6ff;border:1.5px solid #93c5fd;color:#1d4ed8;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                    + เพิ่มยา
+                </button>
+
+                <!-- Spacer -->
+                <div style="flex:1;"></div>
+
+                <!-- BSA chip -->
+                <div style="display:flex;align-items:center;gap:5px;background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:8px;padding:5px 12px;flex-shrink:0;">
+                    <span style="font-size:10px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:0.06em;">BSA</span>
+                    <span style="font-size:18px;font-weight:900;color:#4f46e5;font-family:ui-monospace,monospace;letter-spacing:-0.02em;line-height:1;" id="out-bsa">--</span>
+                    <span style="font-size:10px;font-weight:700;color:#8b5cf6;">m²</span>
+                </div>
+
+                <!-- CrCl chip -->
+                <div style="display:flex;align-items:center;gap:5px;background:#faf5ff;border:1.5px solid #d8b4fe;border-radius:8px;padding:5px 12px;flex-shrink:0;">
+                    <span style="font-size:10px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:0.06em;">CrCl</span>
+                    <span style="font-size:18px;font-weight:900;color:#6d28d9;font-family:ui-monospace,monospace;letter-spacing:-0.02em;line-height:1;" id="out-crcl">--</span>
+                    <span style="font-size:10px;font-weight:700;color:#8b5cf6;" id="crcl-note-mini">mL/min</span>
+                </div>
+
+                <!-- Print Summary -->
+                <button onclick="printSummary()" class="no-print"
+                    style="background:#f0fdf4;border:1.5px solid #86efac;color:#15803d;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                    title="พิมพ์สรุปการคำนวณ">
+                    🖨️ พิมพ์
+                </button>
+            </div>
+        </div>
+
+        <!-- Drug List -->
+        <div id="drug-container" style="flex:1;overflow-y:auto;padding:14px 16px;">
+            <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:12px;">
+                <div style="width:56px;height:56px;border-radius:50%;background:#f8fafc;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;">
+                    <svg style="width:28px;height:28px;color:#cbd5e1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <p style="font-size:13px;font-weight:600;color:#94a3b8;text-align:center;">พิมพ์ค้นหาหรือเลือกสูตรยาด้านบนเพื่อเริ่มประมวลผล</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════
+const tsvData = `
+5FU/LV – CCRT	Leucovorin	20	Direct IV push	BSA	-
+5FU/LV – CCRT	5-Fluorouracil (5-FU)	400	NSS 100 ml IV drip	BSA	100
+Bevacizumab	Bevacizumab	7.5	NSS 100 ml IV 90 min	Weight	100
+Bevacizumab + XELOX	Oxaliplatin	130	5%DW 250 ml IV 2 hrs	BSA	250
+Bevacizumab + XELOX	Bevacizumab	7.5	NSS 100 ml IV 90 min	Weight	100
+Bevacizumab + XELOX	Capecitabine (PO)	1000	Oral (BID x14 days)	BSA	-
+Bortezomib (VCD)	Bortezomib	1.3	SC injection	BSA	-
+Bortezomib (VCD)	Cyclophosphamide	300	NSS 100 ml IV	BSA	100
+Bortezomib (VCD)	Dexamethasone	40	Oral/IV	Fixed	-
+Carboplatin / Gemcitabine	Carboplatin	5	5%DW 100 ml IV 1 hr	AUC	100
+Carboplatin / Gemcitabine	Gemcitabine	1000	NSS 100 ml IV 30 min	BSA	100
+Carboplatin + 5-FU	Carboplatin	5	5%DW 100 ml IV 1 hr (D1)	AUC	100
+Carboplatin + 5-FU	5-Fluorouracil (5-FU)	1200	NSS 1000 ml IV 24 hr (D1-4)	BSA	1000
+Carboplatin/Paclitaxel q3wk	Paclitaxel	175	NSS 500 ml IV 3 hr	BSA	500
+Carboplatin/Paclitaxel q3wk	Carboplatin	5	5%DW 100 ml IV 1 hr	AUC	100
+Carboplatin CCRT	Carboplatin	2	5%DW 100 ml IV 1 hr	AUC	100
+Carbo/Paclitaxel (Weekly)	Paclitaxel	50	5%DW 250 ml IV 1 hr	BSA	250
+Carbo/Paclitaxel (Weekly)	Carboplatin	2	5%DW 100 ml IV 1 hr	AUC	100
+CHOP	Cyclophosphamide	750	NSS 100 ml IV 15 min	BSA	100
+CHOP	Doxorubicin	50	NSS 50 ml IV push	BSA	50
+CHOP	Vincristine	1.4	NSS 50 ml IV free flow	BSA	50
+Cis/Gem – CHCA	Cisplatin	25	NSS 100 ml IV 1 hr	BSA	100
+Cis/Gem – CHCA	Gemcitabine	1000	NSS 100 ml IV 30 min	BSA	100
+Cisplatin CCRT	Cisplatin	40	NSS 100 ml IV drip 1 hr	BSA	100
+Cisplatin + 5-FU	Cisplatin	75	NSS 250 ml IV 2 hr	BSA	250
+Cisplatin + 5-FU	5-Fluorouracil (5-FU)	1000	NSS 1000 ml IV 24 hr	BSA	1000
+Docetaxel	Docetaxel	75	NSS 250 ml IV 90 min	BSA	250
+ENHERTU	Trastuzumab deruxtecan	5.4	5%DW 100 ml IV 90 min	Weight	100
+FAC Regimen	Doxorubicin	50	NSS 50 ml IV push	BSA	50
+FAC Regimen	Cyclophosphamide	500	NSS 100 ml IV 15 min	BSA	100
+FAC Regimen	5-Fluorouracil (5-FU)	500	NSS 100 ml IV drip	BSA	100
+FLOX Week 1,3,5	Oxaliplatin	85	5%DW 250 ml IV 2 hr	BSA	250
+FLOX Week 1,3,5	Leucovorin	500	5%DW 250 ml IV 2 hr	BSA	250
+FLOX Week 1,3,5	5-FU (Bolus)	500	NSS 100 ml IV 10 min	BSA	100
+GEM-Abraxane	Abraxane (nab-Paclitaxel)	125	NSS 100 ml IV 30 min	BSA	100
+GEM-Abraxane	Gemcitabine	1000	NSS 100 ml IV 30 min	BSA	100
+Gemcitabine / Docetaxel	Docetaxel	75	NSS 250 ml IV 2 hr	BSA	250
+Gemcitabine / Docetaxel	Gemcitabine	1000	NSS 250 ml IV 90 min	BSA	250
+Herceptin (mono)	Trastuzumab (Herceptin)	6	NSS 250 ml IV 90 min	Weight	250
+Herceptin + Docetaxel	Trastuzumab (Herceptin)	8	NSS 250 ml IV 90 min	Weight	250
+Herceptin + Docetaxel	Docetaxel	75	NSS 250 ml IV 90 min	BSA	250
+Herceptin + Paclitaxel	Trastuzumab (Herceptin)	6	NSS 250 ml IV 90 min	Weight	250
+Herceptin + Paclitaxel	Paclitaxel	175	5%DW 500 ml IV 3 hr	BSA	500
+High Dose MTX (PCNSL)	Methotrexate	3500	D5S 1000 ml IV 6 hr	BSA	1000
+ABVD	Doxorubicin	25	NSS 50 ml IV push	BSA	50
+ABVD	Bleomycin	10	NSS 50 ml IV push	BSA	50
+ABVD	Vinblastine	6	NSS 50 ml IV push	BSA	50
+ABVD	Dacarbazine	375	NSS 250 ml IV 1 hr	BSA	250
+ICE	Ifosfamide+Mesna	5000	5%DW 1000 ml IV 24 hr	BSA	1000
+ICE	Carboplatin	5	5%DW 250 ml IV 1 hr	AUC	250
+ICE	Etoposide	100	5%DW 500 ml IV	BSA	500
+Irinotecan (mono)	Irinotecan	150	5%DW 500 ml IV 90 min	BSA	500
+Bleomycin / Vincristine	Bleomycin	10	NSS 50 ml IV push	BSA	50
+Bleomycin / Vincristine	Vincristine	1.4	NSS 50 ml IV free flow	BSA	50
+mFOLFIRI	Irinotecan	150	5%DW 250 ml IV 90 min	BSA	250
+mFOLFIRI	Leucovorin	400	5%DW 250 ml IV 90 min	BSA	250
+mFOLFIRI	5-FU (Bolus)	400	NSS 50 ml IV push	BSA	50
+mFOLFIRI	5-FU (Continuous)	1200	NSS 1000 ml IV 23 hrs	BSA	1000
+mFOLFOX6 (mono)	Oxaliplatin	85	5%DW 250 ml IV 2 hrs	BSA	250
+mFOLFOX6 (mono)	Leucovorin	400	5%DW 250 ml IV 2 hrs	BSA	250
+mFOLFOX6 (mono)	5-FU (Bolus)	400	NSS 50 ml IV push	BSA	50
+mFOLFOX6 (mono)	5-FU (Continuous)	1200	NSS 1000 ml IV 22 hrs	BSA	1000
+mFOLFOX6 + Panitumumab	Panitumumab	6	NSS 100 ml IV 1 hr	Weight	100
+mFOLFOX6 + Panitumumab	Oxaliplatin	85	5%DW 250 ml IV 2 hrs	BSA	250
+mFOLFOX6 + Panitumumab	Leucovorin	400	5%DW 250 ml IV 2 hrs	BSA	250
+mFOLFOX6 + Panitumumab	5-FU (Bolus)	400	NSS 50 ml IV push	BSA	50
+mFOLFOX6 + Panitumumab	5-FU (Continuous)	1200	NSS 1000 ml IV 22 hrs	BSA	1000
+Nivolumab	Nivolumab	240	0.9% NaCl 100 ml IV 30m	Fixed	100
+AC Regimen	Doxorubicin	60	0.9% NaCl 50 ml IV push	BSA	50
+AC Regimen	Cyclophosphamide	600	0.9% NaCl 100 ml IV 15m	BSA	100
+Paclitaxel (Weekly)	Paclitaxel	60	5%DW 250 ml IV 1 hr	BSA	250
+Paclitaxel q3wk	Paclitaxel	175	NSS 500 ml IV 3 hr	BSA	500
+Pembrolizumab	Pembrolizumab	200	0.9% NaCl 100 ml IV 30m	Fixed	100
+Pemetrexed (mono)	Pemetrexed	500	NSS 100 ml IV 10 min	BSA	100
+Per/Her + Docetaxel	Pertuzumab	840	NSS 250 ml IV 60 min	Fixed	250
+Per/Her + Docetaxel	Trastuzumab (Herceptin)	600	SC injection	Fixed	-
+Per/Her + Docetaxel	Docetaxel	75	5%DW 250 ml IV 90 min	BSA	250
+R-CHOP	Rituximab	375	NSS 500 ml IV	BSA	500
+R-CHOP	Cyclophosphamide	750	NSS 100 ml IV 15 min	BSA	100
+R-CHOP	Doxorubicin	50	NSS 50 ml IV push	BSA	50
+R-CHOP	Vincristine	1.4	NSS 50 ml IV free flow	BSA	50
+TC / TCH Regimen	Trastuzumab (Herceptin)	8	0.9% NaCl 250 ml 90m	Weight	250
+TC / TCH Regimen	Docetaxel	75	0.9% NaCl 250 ml 90m	BSA	250
+TC / TCH Regimen	Cyclophosphamide	600	0.9% NaCl 100 ml 15m	BSA	100
+XELOX	Oxaliplatin	130	5%DW 250 ml IV 2 hrs	BSA	250
+XELOX	Capecitabine (PO)	1000	Oral (BID x14 days)	BSA	-
+Zoledronic acid	Zoledronic acid	4	NSS 100 ml IV 15 min	Fixed	100
+`.trim();
+
+const db = { "CUSTOM": [] };
+tsvData.split('\n').forEach(line => {
+    const parts = line.split('\t');
+    const [protocol, name, dose, diluent, basis, volStr] = parts;
+    if (!db[protocol]) db[protocol] = [];
+    const volRaw = volStr ? volStr.trim() : '';
+    const defaultVol = volRaw === '-' || volRaw === '' ? null : parseInt(volRaw);
+    db[protocol].push({
+        name, target: parseFloat(dose) || 0, basis,
+        diluentText: diluent || "", defaultVol
+    });
+});
+
+// Populate datalist
+const datalist = document.getElementById('protocol-options');
+Object.keys(db).sort().forEach(key => {
+    if (key !== "CUSTOM") {
+        const opt = document.createElement('option');
+        opt.value = key;
+        datalist.appendChild(opt);
+    }
+});
+
+let state = { bsa: 0, crcl: 0, wt: 0 };
+let currentProtocolArray = [];
+let isCustomMode = false;
+
+// ─── Protocol Navigation ───────────────────────────
+function getSortedKeys() { return Object.keys(db).filter(k => k !== "CUSTOM").sort(); }
+
+function nextProtocol() {
+    const keys = getSortedKeys(), input = document.getElementById('protocol-select');
+    let i = keys.indexOf(input.value) + 1;
+    if (i >= keys.length) i = 0;
+    input.value = keys[i];
+    input.dispatchEvent(new Event('input'));
+}
+function prevProtocol() {
+    const keys = getSortedKeys(), input = document.getElementById('protocol-select');
+    let i = keys.indexOf(input.value) - 1;
+    if (i < 0) i = keys.length - 1;
+    input.value = keys[i];
+    input.dispatchEvent(new Event('input'));
+}
+function clearProtocol() {
+    const input = document.getElementById('protocol-select');
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+}
+function initCustomProtocol() {
+    const input = document.getElementById('protocol-select');
+    input.value = 'CUSTOM';
+    input.dispatchEvent(new Event('input'));
+}
+
+// ─── Reset ────────────────────────────────────────
+function resetApp() {
+    document.querySelectorAll('input').forEach(el => { if(el.type !== 'button') el.value = ''; });
+    document.getElementById('sex').value = 'M';
+    document.getElementById('drug-container').innerHTML = `
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:12px;">
+            <div style="width:56px;height:56px;border-radius:50%;background:#f8fafc;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;">
+                <svg style="width:28px;height:28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <p style="font-size:13px;font-weight:600;color:#94a3b8;text-align:center;">พิมพ์ค้นหาหรือเลือกสูตรยาด้านบนเพื่อเริ่มประมวลผล</p>
+        </div>
+    `;
+    document.getElementById('add-custom-btn').style.display = 'none';
+    currentProtocolArray = [];
+    isCustomMode = false;
+    calculateBiometrics();
+    document.getElementById('wt').focus();
+}
+
+// ─── Keyboard Navigation (Enter → next field → reset btn) ─────
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (e.target.tagName === 'BUTTON') { e.target.click(); return; }
+
+    const inputs = Array.from(document.querySelectorAll('.nav-input:not([disabled])'));
+    const idx = inputs.indexOf(e.target);
+    if (idx === -1) return;
+
+    if (e.target.id === 'plt') {
+        document.getElementById('protocol-select').focus();
+    } else if (e.target.id === 'protocol-select') {
+        setTimeout(() => { const f = document.getElementById('rx-0'); if(f) f.focus(); }, 100);
+    } else if (e.target.id && e.target.id.startsWith('rx-')) {
+        // Check if this is the last rx field
+        const allRx = Array.from(document.querySelectorAll('[id^="rx-"]'));
+        const rxIdx = allRx.indexOf(e.target);
+        if (rxIdx === allRx.length - 1) {
+            // Focus reset button
+            const resetBtn = document.getElementById('reset-btn-bottom');
+            if (resetBtn) resetBtn.focus();
+        } else if (rxIdx < allRx.length - 1) {
+            allRx[rxIdx + 1].focus();
+        }
+    } else if (idx < inputs.length - 1) {
+        inputs[idx + 1].focus();
+    } else {
+        e.target.blur();
+    }
+});
+
+// ─── Biometrics ───────────────────────────────────
+function renderBadge(label, val, pass, empty = false) {
+    if (empty) return `<span class="lab-badge lab-empty">– ${label}</span>`;
+    if (pass) {
+        return `<span class="lab-badge lab-pass">✓ ${label}: ${val}</span>`;
+    } else {
+        return `<span class="lab-badge lab-fail">🚨 ${label}: ${val}</span>`;
+    }
+}
+
+function calculateBiometrics() {
+    const ht = parseFloat(document.getElementById('ht').value);
+    const wt = parseFloat(document.getElementById('wt').value);
+    const age = parseFloat(document.getElementById('age').value);
+    const sex = document.getElementById('sex').value;
+    const scr = parseFloat(document.getElementById('scr').value);
+    const wbc = parseFloat(document.getElementById('wbc').value);
+    const neut = parseFloat(document.getElementById('neut').value);
+    const hb = parseFloat(document.getElementById('hb').value);
+    const plt = parseFloat(document.getElementById('plt').value) * 1000;
+
+    state.wt = isNaN(wt) ? 0 : wt;
+
+    // BSA
+    if (!isNaN(ht) && !isNaN(wt) && ht > 0 && wt > 0) {
+        state.bsa = Math.sqrt((ht * wt) / 3600);
+        document.getElementById('out-bsa').innerText = state.bsa.toFixed(2);
+    } else {
+        state.bsa = 0;
+        document.getElementById('out-bsa').innerText = '--';
+    }
+
+    // CrCl
+    if (!isNaN(ht) && !isNaN(wt) && !isNaN(age) && !isNaN(scr) && ht > 0 && scr > 0) {
+        const bmi = wt / Math.pow(ht / 100, 2);
+        let ibw = sex === 'M' ? 50 + 2.3 * ((ht / 2.54) - 60) : 45.5 + 2.3 * ((ht / 2.54) - 60);
+        let weightForCrCl = wt;
+        let note = "Actual BW";
+        if (bmi > 30) {
+            weightForCrCl = ibw + 0.4 * (wt - ibw);
+            note = `Adj BW ${weightForCrCl.toFixed(0)} kg`;
+        }
+        const miniNote = document.getElementById('crcl-note-mini');
+        if (miniNote) miniNote.innerText = note;
+        let crcl = ((140 - age) * weightForCrCl) / (72 * scr);
+        if (sex === 'F') crcl *= 0.85;
+        state.crcl = Math.min(crcl, 125);
+        document.getElementById('out-crcl').innerText = state.crcl.toFixed(1);
+    } else {
+        state.crcl = 0;
+        document.getElementById('out-crcl').innerText = '--';
+        const miniNote = document.getElementById('crcl-note-mini');
+        if (miniNote) miniNote.innerText = 'mL/min';
+    }
+
+
+    // Badges - 2×2 grid: Row1=[ANC, WBC]  Row2=[Hb, Plt]
+    let anyFail = false;
+
+    function mkBadge(label, val, pass, empty) {
+        if (empty) return `<span class="lab-badge lab-empty" style="flex:1;justify-content:center;">– ${label}</span>`;
+        if (!pass) anyFail = true;
+        const cls = pass ? 'lab-badge lab-pass' : 'lab-badge lab-fail';
+        const icon = pass ? '✓' : '🚨';
+        return `<span class="${cls}" style="flex:1;justify-content:center;">${icon} ${label}: ${val}</span>`;
+    }
+
+    let ancBadge, wbcBadge, hbBadge, pltBadge;
+
+    if (!isNaN(wbc) && !isNaN(neut)) {
+        const anc = Math.round(wbc * (neut / 100));
+        ancBadge = mkBadge('ANC', anc.toLocaleString(), anc >= 1500, false);
+    } else { ancBadge = mkBadge('ANC', '', true, true); }
+
+    wbcBadge  = !isNaN(wbc) ? mkBadge('WBC', wbc.toLocaleString(), wbc >= 3000, false)          : mkBadge('WBC', '', true, true);
+    hbBadge   = !isNaN(hb)  ? mkBadge('Hb',  String(hb),           hb >= 12,    false)          : mkBadge('Hb',  '', true, true);
+    pltBadge  = !isNaN(plt) ? mkBadge('Plt',  (plt/1000).toFixed(0)+'K', plt >= 100000, false)  : mkBadge('Plt', '', true, true);
+
+    document.getElementById('safety-badges').innerHTML = `
+        <div style="display:flex;gap:6px;">${ancBadge}${wbcBadge}</div>
+        <div style="display:flex;gap:6px;">${hbBadge}${pltBadge}</div>
+    `;
+
+    // Overall safety status banner - list exactly which values are low
+    const banner = document.getElementById('safety-banner');
+    if (banner) {
+        const hasAnyLab = !isNaN(wbc) || !isNaN(hb) || !isNaN(plt);
+        if (hasAnyLab && anyFail) {
+            // Build list of failing values
+            const failList = [];
+            if (!isNaN(wbc) && !isNaN(neut)) {
+                const anc = Math.round(wbc * (neut / 100));
+                if (anc < 1500) failList.push(`ANC ${anc.toLocaleString()}`);
+            }
+            if (!isNaN(wbc) && wbc < 3000) failList.push(`WBC ${wbc.toLocaleString()}`);
+            if (!isNaN(hb) && hb < 12) failList.push(`Hb ${hb}`);
+            if (!isNaN(plt) && plt < 100000) failList.push(`Plt ${(plt/1000).toFixed(0)}K`);
+
+            banner.style.display = '';
+            banner.style.background = '#fef2f2';
+            banner.style.borderColor = '#fca5a5';
+            banner.style.animation = 'pulse-soft 1.5s infinite';
+            banner.style.textAlign = 'left';
+            banner.innerHTML = `
+                <div style="font-size:12px;font-weight:900;color:#991b1b;margin-bottom:5px;">🚨 ค่า Lab ต่ำกว่าเกณฑ์ — ควรปรึกษาแพทย์</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                    ${failList.map(f => `<span style="background:#fff0f0;border:1.5px solid #fca5a5;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;color:#b91c1c;">${f}</span>`).join('')}
+                </div>`;
+        } else if (hasAnyLab) {
+            banner.style.display = '';
+            banner.style.background = '#f0fdf4';
+            banner.style.borderColor = '#86efac';
+            banner.style.animation = 'none';
+            banner.style.textAlign = 'center';
+            banner.innerHTML = `<span style="font-size:12px;font-weight:700;color:#15803d;">✓ ค่า Lab ทุกตัวอยู่ในเกณฑ์ปลอดภัย</span>`;
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    updateAllCards();
+}
+
+// ─── Protocol Select ─────────────────────────────
+document.getElementById('protocol-select').addEventListener('input', function(e) {
+    const key = e.target.value;
+    const addBtn = document.getElementById('add-custom-btn');
+    if (key === 'CUSTOM' || db[key]) {
+        isCustomMode = (key === 'CUSTOM');
+        currentProtocolArray = JSON.parse(JSON.stringify(db[key]));
+        if (isCustomMode) {
+            addBtn.style.display = '';
+            if (currentProtocolArray.length === 0) addCustomDrug();
+            else renderCards();
+        } else {
+            addBtn.style.display = 'none';
+            renderCards();
+        }
+    } else if (!key) {
+        addBtn.style.display = 'none';
+        currentProtocolArray = [];
+        document.getElementById('drug-container').innerHTML = `
+            <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:12px;">
+                <div style="width:56px;height:56px;border-radius:50%;background:#f8fafc;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;">
+                    <svg style="width:28px;height:28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <p style="font-size:13px;font-weight:600;color:#94a3b8;text-align:center;">พิมพ์ค้นหาหรือเลือกสูตรยาด้านบนเพื่อเริ่มประมวลผล</p>
+            </div>
+        `;
+    }
+});
+
+function addCustomDrug() {
+    currentProtocolArray.push({ name: "", target: "", basis: "BSA", diluentText: "", defaultVol: 100 });
+    renderCards();
+}
+
+// ─── Render Cards ─────────────────────────────────
+function renderCards() {
+    const container = document.getElementById('drug-container');
+    if (currentProtocolArray.length === 0) {
+        container.innerHTML = `<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;font-weight:600;">ไม่มีรายการยาในสูตรนี้</div>`;
+        return;
+    }
+
+    const bases = ['BSA', 'AUC', 'Weight', 'Fixed'];
+
+    let html = `
+        <!-- Col Headers (desktop) -->
+        <div style="display:grid;grid-template-columns:1.8fr 1fr 1.8fr 1.5fr;gap:8px;padding:0 12px 6px;border-bottom:1px solid #e8edf5;margin-bottom:6px;">
+            <div class="col-head">Drug & Target</div>
+            <div class="col-head" style="text-align:center;">Calc. Dose</div>
+            <div class="col-head">Admin & Conc</div>
+            <div class="col-head" style="text-align:center;">Rx & Variance</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+    `;
+
+    currentProtocolArray.forEach((drug, i) => {
+        const basisOpts = bases.map(b => `<option value="${b}" ${drug.basis === b ? 'selected' : ''}>${b}</option>`).join('');
+        const volVal = drug.defaultVol !== null && drug.defaultVol !== undefined ? drug.defaultVol : '';
+        const volDisplay = drug.defaultVol === null || drug.defaultVol === undefined || drug.defaultVol === 0 ? '' : drug.defaultVol;
+
+        html += `
+        <div class="drug-row" id="row-${i}" style="display:grid;grid-template-columns:1.8fr 1fr 1.8fr 1.5fr;gap:8px;align-items:center;">
+
+            <!-- Col 1: Drug Name & Target -->
+            <div style="display:flex;flex-direction:column;gap:5px;">
+                <input type="text" id="name-${i}" class="inp"
+                    style="font-size:16px;font-weight:800;color:#1e293b;border-color:transparent;background:transparent;box-shadow:none;padding:2px 4px;"
+                    value="${drug.name}" placeholder="ชื่อยา">
+                <div style="display:flex;align-items:center;gap:4px;padding:0 2px;flex-wrap:wrap;">
+                    <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">Target:</span>
+                    <input type="number" id="target-${i}" step="0.1"
+                        class="inp"
+                        style="width:58px;font-size:13px;padding:3px 5px;text-align:center;font-weight:800;color:#4f46e5;"
+                        value="${drug.target}">
+                    <select id="basis-${i}" class="inp" style="width:66px;font-size:12px;padding:3px 5px;font-weight:800;">
+                        ${basisOpts}
+                    </select>
+                    <!-- Dose reduction selector -->
+                    <select id="dred-${i}" class="inp dose-red-btn inactive"
+                        style="width:76px;font-size:11px;padding:2px 4px;font-weight:800;"
+                        title="ลด Dose (%)"
+                        onchange="updateSingleCard(${i})">
+                        <option value="100">ปกติ</option>
+                        <option value="90">ลด 10%</option>
+                        <option value="85">ลด 15%</option>
+                        <option value="80">ลด 20%</option>
+                        <option value="75">ลด 25%</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Col 2: Calculated Dose -->
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f5f3ff;border-radius:8px;border:1.5px solid #e0e7ff;padding:8px 4px;position:relative;min-height:56px;">
+                <div style="display:flex;align-items:baseline;gap:2px;">
+                    <span class="calc-dose" id="rec-${i}">0.0</span>
+                    <span style="font-size:11px;font-weight:800;color:#818cf8;">mg</span>
+                </div>
+                <div id="cap-note-${i}" style="display:none;"></div>
+                <div id="renal-warn-${i}" style="display:none;position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:5;">
+                    <span class="chip chip-red">⚠ ปรับตามค่าไต</span>
+                </div>
+            </div>
+
+            <!-- Col 3: Diluent, Vol, Conc -->
+            <div style="display:flex;flex-direction:column;gap:5px;">
+                <input type="text" id="diluent-${i}" class="inp"
+                    style="font-size:12px;padding:5px 9px;font-weight:600;"
+                    placeholder="สารละลายและเวลาให้ยา"
+                    value="${drug.diluentText}">
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">Vol:</span>
+                        <input type="number" id="vol-${i}" class="inp"
+                            style="width:58px;font-size:12px;padding:3px 6px;text-align:center;font-weight:800;color:#4f46e5;"
+                            value="${volDisplay}" placeholder="ml">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:3px;background:#f8fafc;border:1.5px solid #e8edf5;border-radius:6px;padding:3px 8px;flex:1;justify-content:center;">
+                        <span style="font-size:11px;font-weight:800;color:#64748b;">Conc:</span>
+                        <span style="font-size:13px;font-weight:900;color:#4f46e5;" id="conc-${i}">--</span>
+                        <span style="font-size:10px;font-weight:700;color:#94a3b8;">mg/ml</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 4: Rx & Variance -->
+            <div style="display:flex;gap:5px;align-items:center;">
+                <input type="number" step="0.1" id="rx-${i}" class="inp nav-input"
+                    style="font-size:22px;font-weight:900;text-align:center;height:56px;letter-spacing:-0.02em;box-shadow:inset 0 2px 5px rgba(15,23,42,0.07);"
+                    placeholder="0">
+                <div id="var-${i}" class="var-badge var-empty">
+                    <span style="font-size:11px;font-weight:600;color:#94a3b8;">รอข้อมูล</span>
+                </div>
+            </div>
+
+        </div>
+        `;
+    });
+
+    html += `</div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e8edf5;display:flex;justify-content:flex-end;">
+            <button id="reset-btn-bottom" onclick="resetApp()" class="btn btn-rose">
+                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                เริ่มใหม่ (Reset All)
+            </button>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    currentProtocolArray.forEach((_, i) => {
+        ['target','basis','rx','name','vol','diluent','dred'].forEach(prefix => {
+            const el = document.getElementById(`${prefix}-${i}`);
+            if (el) el.addEventListener('input', () => updateSingleCard(i));
+        });
+        updateSingleCard(i);
+    });
+}
+
+function updateAllCards() {
+    currentProtocolArray.forEach((_, i) => updateSingleCard(i));
+}
+
+function updateSingleCard(i) {
+    const nameEl   = document.getElementById(`name-${i}`);
+    const targetEl = document.getElementById(`target-${i}`);
+    const basisEl  = document.getElementById(`basis-${i}`);
+    const rxEl     = document.getElementById(`rx-${i}`);
+    const volEl    = document.getElementById(`vol-${i}`);
+    const dredEl   = document.getElementById(`dred-${i}`);
+    const recEl    = document.getElementById(`rec-${i}`);
+    const capNote  = document.getElementById(`cap-note-${i}`);
+    const renalWarnEl = document.getElementById(`renal-warn-${i}`);
+    const concEl   = document.getElementById(`conc-${i}`);
+    const varDiv   = document.getElementById(`var-${i}`);
+    const row      = document.getElementById(`row-${i}`);
+
+    if (!targetEl) return;
+
+    const name   = nameEl.value.toLowerCase();
+    const target = parseFloat(targetEl.value);
+    const basis  = basisEl.value;
+    const rx     = parseFloat(rxEl.value);
+    const vol    = parseFloat(volEl.value);
+    const dredPct = dredEl ? (parseFloat(dredEl.value) || 100) : 100;
+
+    // Style dose reduction selector
+    if (dredEl) {
+        if (dredPct === 100) { dredEl.className = 'inp dose-red-btn full'; }
+        else { dredEl.className = 'inp dose-red-btn active'; }
+    }
+
+    let recDose = 0, validRec = false;
+    if (!isNaN(target)) {
+        if      (basis === 'BSA'    && state.bsa > 0)  { recDose = target * state.bsa;           validRec = true; }
+        else if (basis === 'AUC'    && state.crcl > 0) { recDose = target * (state.crcl + 25);   validRec = true; }
+        else if (basis === 'Weight' && state.wt > 0)   { recDose = target * state.wt;             validRec = true; }
+        else if (basis === 'Fixed')                    { recDose = target;                         validRec = true; }
+    }
+
+    // Apply dose reduction
+    if (validRec && dredPct !== 100) {
+        recDose = recDose * (dredPct / 100);
+    }
+
+    // Renal warning
+    const renalDrugs = ['cisplatin','methotrexate','mtx','pemetrexed','etoposide','ifosfamide'];
+    if (validRec && renalDrugs.some(d => name.includes(d))) {
+        renalWarnEl.style.display = '';
+    } else {
+        renalWarnEl.style.display = 'none';
+    }
+
+    // Caps
+    capNote.style.display = 'none';
+    capNote.className = '';
+    capNote.innerText = '';
+
+    if (validRec && name.includes('vinblastine') && recDose > 10) {
+        recDose = 10;
+        capNote.style.display = '';
+        capNote.className = 'chip chip-amber';
+        capNote.innerText = 'MAX 10 mg';
+    } else if (validRec && name.includes('vincristine') && recDose > 2) {
+        recDose = 2;
+        capNote.style.display = '';
+        capNote.className = 'chip chip-amber';
+        capNote.innerText = 'MAX 2 mg';
+    } else if (validRec && name.includes('zoledronic')) {
+        if (state.crcl > 60)        { recDose = 4.0; }
+        else if (state.crcl >= 50)  { recDose = 3.5; capNote.style.display=''; capNote.className='chip chip-blue'; capNote.innerText=`Adj CrCl${state.crcl.toFixed(0)}`; }
+        else if (state.crcl >= 40)  { recDose = 3.3; capNote.style.display=''; capNote.className='chip chip-blue'; capNote.innerText=`Adj CrCl${state.crcl.toFixed(0)}`; }
+        else if (state.crcl >= 30)  { recDose = 3.0; capNote.style.display=''; capNote.className='chip chip-blue'; capNote.innerText=`Adj CrCl${state.crcl.toFixed(0)}`; }
+        else { recDose = 0; capNote.style.display=''; capNote.className='chip chip-red'; capNote.innerText='CrCl<30: ห้ามใช้'; }
+    }
+
+    recEl.innerText = validRec ? recDose.toFixed(1) : '0.0';
+
+    // Show dose reduction label on rec display
+    if (dredPct !== 100 && validRec) {
+        recEl.title = `Dose reduced to ${dredPct}%`;
+        recEl.style.color = '#d97706';
+    } else {
+        recEl.title = '';
+        recEl.style.color = '';
+    }
+
+    // Conc
+    const doseForConc = (!isNaN(rx) && rx > 0) ? rx : recDose;
+    if (!isNaN(vol) && vol > 0 && doseForConc > 0) {
+        const conc = doseForConc / vol;
+        concEl.innerText = conc.toFixed(2);
+        // Etoposide alert: conc > 0.4
+        if (name.includes('etoposide') && conc > 0.4) {
+            concEl.className = 'conc-alert';
+            concEl.title = '⚠ Etoposide: ความเข้มข้นเกิน 0.4 mg/ml';
+            // Show visible alert badge next to conc
+            let alertBadge = document.getElementById(`conc-alert-${i}`);
+            if (!alertBadge) {
+                alertBadge = document.createElement('div');
+                alertBadge.id = `conc-alert-${i}`;
+                alertBadge.style.cssText = 'margin-top:3px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:800;color:#b91c1c;text-align:center;animation:pulse-soft 1.2s infinite;';
+                concEl.parentNode.appendChild(alertBadge);
+            }
+            alertBadge.innerHTML = '🚨 Conc &gt;0.4!';
+            alertBadge.style.display = '';
+        } else {
+            concEl.className = '';
+            concEl.title = '';
+            const alertBadge = document.getElementById(`conc-alert-${i}`);
+            if (alertBadge) alertBadge.style.display = 'none';
+        }
+    } else {
+        concEl.innerText = '--';
+        concEl.className = '';
+        const alertBadge = document.getElementById(`conc-alert-${i}`);
+        if (alertBadge) alertBadge.style.display = 'none';
+    }
+
+    // Variance
+    if (!isNaN(rx) && rx > 0 && validRec && recDose > 0) {
+        const diff = ((rx - recDose) / recDose) * 100;
+        const absDiff = Math.abs(diff);
+        const diffTxt = diff > 0 ? `+${diff.toFixed(1)}%` : `${diff.toFixed(1)}%`;
+
+        if (absDiff <= 5) {
+            varDiv.innerHTML = `<span style="font-size:14px;font-weight:900;line-height:1.1;">${diffTxt}</span><span style="font-size:10px;font-weight:700;margin-top:2px;">✓ ปลอดภัย</span>`;
+            varDiv.setAttribute('class', 'var-badge var-safe');
+            row.style.borderColor = '#86efac';
+        } else if (absDiff <= 10) {
+            varDiv.innerHTML = `<span style="font-size:14px;font-weight:900;line-height:1.1;">${diffTxt}</span><span style="font-size:10px;font-weight:700;margin-top:2px;">⚠ ตรวจสอบ</span>`;
+            varDiv.setAttribute('class', 'var-badge var-warn');
+            row.style.borderColor = '#fcd34d';
+        } else {
+            varDiv.innerHTML = `<span style="font-size:14px;font-weight:900;line-height:1.1;">${diffTxt}</span><span style="font-size:10px;font-weight:700;margin-top:2px;">🚨 อันตราย</span>`;
+            varDiv.setAttribute('class', 'var-badge var-danger');
+            row.style.borderColor = '#fca5a5';
+        }
+    } else {
+        varDiv.innerHTML = `<span style="font-size:11px;font-weight:600;color:#94a3b8;">รอข้อมูล</span>`;
+        varDiv.setAttribute('class', 'var-badge var-empty');
+        row.style.borderColor = '#e8edf5';
+    }
+}
+
+// ─── Print Summary ────────────────────────────────
+function printSummary() {
+    const protocol = document.getElementById('protocol-select').value || 'ไม่ระบุ';
+    const bsa = document.getElementById('out-bsa').innerText;
+    const crcl = document.getElementById('out-crcl').innerText;
+    const wt = document.getElementById('wt').value;
+    const ht = document.getElementById('ht').value;
+    const age = document.getElementById('age').value;
+    const sex = document.getElementById('sex').value === 'M' ? 'ชาย' : 'หญิง';
+
+    let drugRows = '';
+    currentProtocolArray.forEach((_, i) => {
+        const name = document.getElementById(`name-${i}`)?.value || '-';
+        const rec = document.getElementById(`rec-${i}`)?.innerText || '-';
+        const rx = document.getElementById(`rx-${i}`)?.value || '-';
+        const diluent = document.getElementById(`diluent-${i}`)?.value || '-';
+        const conc = document.getElementById(`conc-${i}`)?.innerText || '-';
+        const dred = document.getElementById(`dred-${i}`)?.value || '100';
+        const varEl = document.getElementById(`var-${i}`);
+        const varTxt = varEl ? varEl.innerText.replace('\n',' ') : '-';
+        drugRows += `<tr>
+            <td style="padding:6px 10px;border-bottom:1px solid #e8edf5;font-weight:700;">${name}</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e8edf5;text-align:center;">${rec} mg${dred!=='100'?` <span style="color:#d97706;">(${dred}%)</span>`:''}</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e8edf5;text-align:center;font-weight:800;">${rx} mg</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e8edf5;">${diluent}</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e8edf5;text-align:center;">${conc} mg/ml</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #e8edf5;text-align:center;font-weight:700;">${varTxt}</td>
+        </tr>`;
+    });
+
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>OncoChex — สรุปการคำนวณ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Prompt', sans-serif; padding: 30px; color: #1e293b; font-size: 13px; }
+        h1 { font-size: 22px; font-weight: 900; color: #4f46e5; margin: 0 0 4px; }
+        .meta { color: #64748b; font-size: 12px; margin-bottom: 20px; }
+        .info-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+        .info-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; }
+        .info-box .lbl { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+        .info-box .val { font-size: 20px; font-weight: 900; color: #4f46e5; margin-top: 2px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #4f46e5; color: white; padding: 8px 10px; font-size: 11px; font-weight: 800; text-align: left; text-transform: uppercase; letter-spacing: 0.04em; }
+        tr:nth-child(even) td { background: #f8fafc; }
+        .footer { margin-top: 24px; font-size: 10px; color: #94a3b8; border-top: 1px solid #e8edf5; padding-top: 10px; }
+        @media print { body { padding: 15px; } }
+    </style></head><body>
+    <h1>🧬 OncoChex — สรุปการคำนวณยา</h1>
+    <div class="meta">พิมพ์เมื่อ: ${new Date().toLocaleString('th-TH')} &nbsp;|&nbsp; สูตรยา: <strong>${protocol}</strong></div>
+    <div class="info-grid">
+        <div class="info-box"><div class="lbl">น้ำหนัก</div><div class="val">${wt} <span style="font-size:13px;">kg</span></div></div>
+        <div class="info-box"><div class="lbl">ส่วนสูง</div><div class="val">${ht} <span style="font-size:13px;">cm</span></div></div>
+        <div class="info-box"><div class="lbl">BSA</div><div class="val">${bsa} <span style="font-size:13px;">m²</span></div></div>
+        <div class="info-box"><div class="lbl">CrCl</div><div class="val">${crcl} <span style="font-size:13px;">mL/min</span></div></div>
+    </div>
+    <table>
+        <thead><tr>
+            <th>ยา</th><th style="text-align:center;">คำนวณ (Calc)</th><th style="text-align:center;">แพทย์สั่ง (Rx)</th>
+            <th>วิธีให้</th><th style="text-align:center;">Conc</th><th style="text-align:center;">ส่วนต่าง</th>
+        </tr></thead>
+        <tbody>${drugRows}</tbody>
+    </table>
+    <div class="footer">OncoChex Clinical Pharmacy Engine &nbsp;|&nbsp; ${age} ปี ${sex} &nbsp;|&nbsp; ไม่ใช่เอกสารทางการแพทย์ — ใช้เพื่อตรวจสอบเท่านั้น</div>
+    <script>window.onload=()=>window.print()<\/script>
+    </body></html>`);
+    win.document.close();
+}
+
+// Biometric listeners
+document.querySelectorAll('#ht,#wt,#age,#sex,#scr,#wbc,#neut,#hb,#plt').forEach(el => {
+    el.addEventListener('input', calculateBiometrics);
+});
+
+calculateBiometrics();
+</script>
+</body>
+</html>
