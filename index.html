@@ -740,42 +740,79 @@ function applyOCRResult() {
     const d = ocrParsed;
 
     // Patient data
-    if (d.wt)       { document.getElementById('wt').value  = d.wt; }
-    if (d.ht)       { document.getElementById('ht').value  = d.ht; }
-    if (d.scr)      { document.getElementById('scr').value = d.scr; }
-    if (d.wbc)      { document.getElementById('wbc').value = d.wbc; }
-    if (d.hb)       { document.getElementById('hb').value  = d.hb; }
-    if (d.plt)      { document.getElementById('plt').value = d.plt; }   // already ×10³
-    if (d.neut_pct) { document.getElementById('neut').value = d.neut_pct; }
+    if (d.wt)       document.getElementById('wt').value  = d.wt;
+    if (d.ht)       document.getElementById('ht').value  = d.ht;
+    if (d.scr)      document.getElementById('scr').value = d.scr;
+    if (d.wbc)      document.getElementById('wbc').value = d.wbc;
+    if (d.hb)       document.getElementById('hb').value  = d.hb;
+    if (d.plt)      document.getElementById('plt').value = d.plt;
+    if (d.neut_pct) document.getElementById('neut').value = d.neut_pct;
 
-    // Rx doses — fuzzy name match
-    if (d.drugs?.length) {
-        d.drugs.forEach(drug => {
-            if (drug.dose_mg === null) return;
-            currentProtocolArray.forEach((_, i) => {
-                const nameEl = document.getElementById(`name-${i}`);
-                if (!nameEl) return;
-                const rowName = nameEl.value.toLowerCase();
-                const ocrName = (drug.name || '').toLowerCase();
-                const words = ocrName.split(/[\s\(\)]+/).filter(w => w.length > 3);
-                if (words.some(w => rowName.includes(w))) {
-                    const rxEl = document.getElementById(`rx-${i}`);
-                    if (rxEl) { rxEl.value = drug.dose_mg; updateSingleCard(i); }
-                }
-            });
+    // ── Auto-select protocol ─────────────────────────────────────────
+    if (d.protocol) {
+        const keys = Object.keys(db).filter(k => k !== 'CUSTOM');
+        const ocrProto = d.protocol.toLowerCase().replace(/[\s\-\/]/g, '');
+
+        // Score each key: count matching chars/tokens
+        let bestKey = null, bestScore = 0;
+        keys.forEach(key => {
+            const norm = key.toLowerCase().replace(/[\s\-\/]/g, '');
+            // Exact contains
+            if (norm.includes(ocrProto) || ocrProto.includes(norm)) {
+                const score = Math.min(norm.length, ocrProto.length);
+                if (score > bestScore) { bestScore = score; bestKey = key; }
+            }
+            // Token overlap
+            const ocrTokens = ocrProto.match(/[a-z0-9]+/g) || [];
+            const keyTokens  = norm.match(/[a-z0-9]+/g) || [];
+            const shared = ocrTokens.filter(t => keyTokens.some(k => k.includes(t) || t.includes(k)));
+            if (shared.length > 0) {
+                const score = shared.join('').length;
+                if (score > bestScore) { bestScore = score; bestKey = key; }
+            }
         });
+
+        if (bestKey) {
+            const sel = document.getElementById('protocol-select');
+            sel.value = bestKey;
+            sel.dispatchEvent(new Event('input'));   // triggers renderCards()
+            // After cards render, fill Rx doses
+            setTimeout(() => fillRxDoses(d.drugs), 150);
+        } else {
+            fillRxDoses(d.drugs);
+        }
+    } else {
+        fillRxDoses(d.drugs);
     }
 
     calculateBiometrics();
     closeOCR();
 
-    // Flash all filled inputs green
+    // Flash filled inputs green
     ['wt','ht','scr','wbc','hb','plt','neut'].forEach(id => {
         const el = document.getElementById(id);
         if (el?.value) {
             el.style.borderColor='#4ade80'; el.style.background='#f0fdf4';
             setTimeout(() => { el.style.borderColor=''; el.style.background=''; }, 2000);
         }
+    });
+}
+
+function fillRxDoses(drugs) {
+    if (!drugs?.length) return;
+    drugs.forEach(drug => {
+        if (drug.dose_mg === null) return;
+        currentProtocolArray.forEach((_, i) => {
+            const nameEl = document.getElementById(`name-${i}`);
+            if (!nameEl) return;
+            const rowName = nameEl.value.toLowerCase();
+            const ocrName = (drug.name || '').toLowerCase();
+            const words = ocrName.split(/[\s\(\)]+/).filter(w => w.length > 3);
+            if (words.some(w => rowName.includes(w))) {
+                const rxEl = document.getElementById(`rx-${i}`);
+                if (rxEl) { rxEl.value = drug.dose_mg; updateSingleCard(i); }
+            }
+        });
     });
 }
 
