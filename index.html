@@ -478,74 +478,160 @@
 </head>
 <body>
 
-<!-- ═══ OCR MODAL ════════════════════════════════════ -->
-<div id="ocr-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(10,15,30,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:16px;padding:24px 28px;max-width:520px;width:92%;box-shadow:0 24px 60px rgba(0,0,0,0.4);position:relative;max-height:90vh;overflow-y:auto;">
-        <button onclick="closeOCR()" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;">✕</button>
-
-        <!-- Header -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-            <div style="width:40px;height:40px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📷</div>
-            <div>
-                <div style="font-size:16px;font-weight:900;color:#1e293b;">สแกน Chemo Order</div>
-                <div style="font-size:11px;color:#64748b;margin-top:1px;">ใช้ Claude AI อ่านลายมือ + ตัวพิมพ์ได้แม่นยำ</div>
-            </div>
-        </div>
-
-        <!-- API Key Section -->
-        <div id="ocr-apikey-section" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                <span style="font-size:11px;font-weight:800;color:#334155;text-transform:uppercase;letter-spacing:0.05em;">🔑 Anthropic API Key</span>
-                <a href="https://console.anthropic.com/keys" target="_blank" style="font-size:10px;color:#6366f1;font-weight:700;">สมัครฟรี →</a>
-            </div>
-            <div style="display:flex;gap:6px;">
-                <input type="password" id="ocr-apikey-input" placeholder="sk-ant-api03-..." 
-                    style="flex:1;border:1.5px solid #dde3ef;border-radius:7px;padding:7px 10px;font-size:12px;font-family:monospace;font-weight:600;color:#1e293b;">
-                <button onclick="saveAPIKey()" style="background:#4f46e5;color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">บันทึก</button>
-            </div>
-            <div id="ocr-key-status" style="font-size:10px;color:#94a3b8;margin-top:5px;">กรอก API Key เพื่อใช้งาน Claude Vision (เก็บใน browser เท่านั้น)</div>
-        </div>
-
-        <!-- Drop Zone -->
-        <div id="ocr-dropzone"
-            ondragover="event.preventDefault();this.style.borderColor='#6366f1';this.style.background='#f0f0ff';"
-            ondragleave="this.style.borderColor='#c4b5fd';this.style.background='#fafaff';"
-            ondrop="handleOCRDrop(event)"
-            onclick="document.getElementById('ocr-file-input').click()"
-            style="border:2px dashed #c4b5fd;border-radius:12px;padding:26px 20px;text-align:center;cursor:pointer;background:#fafaff;transition:all 0.2s;margin-bottom:12px;">
-            <div style="font-size:32px;margin-bottom:6px;">🖼️</div>
-            <div style="font-size:13px;font-weight:700;color:#4f46e5;">ลากรูปมาวางที่นี่</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:3px;">หรือคลิกเพื่อเลือกไฟล์ · JPG, PNG</div>
-        </div>
-
-        <!-- Status -->
-        <div id="ocr-status" style="display:none;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;text-align:center;margin-bottom:10px;"></div>
-
-        <!-- Preview image -->
-        <div id="ocr-preview" style="display:none;margin-bottom:10px;">
-            <img id="ocr-img" style="max-width:100%;border-radius:8px;border:1px solid #e2e8f0;max-height:160px;object-fit:contain;display:block;margin:0 auto;">
-        </div>
-
-        <!-- Result -->
-        <div id="ocr-result" style="display:none;margin-bottom:10px;"></div>
-
-        <!-- Apply -->
-        <button id="ocr-apply-btn" onclick="applyOCRResult()" style="display:none;width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,0.3);">
-            ✅ ใช้ข้อมูลนี้เลย
-        </button>
+<!-- ═══ SAVE PROTOCOL MODAL ══════════════════════════ -->
+<div id="save-proto-modal" style="display:none;position:fixed;inset:0;z-index:110;background:rgba(10,15,30,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;width:min(480px,92vw);box-shadow:0 24px 60px rgba(0,0,0,0.4);overflow:hidden;">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#059669,#0891b2);padding:13px 20px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px;">💾</span>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:900;color:#fff;">บันทึก & จัดการสูตรยา</div>
+        <div style="font-size:10px;color:#a7f3d0;margin-top:1px;">เก็บไว้ใน browser — ใช้ได้ครั้งต่อไป</div>
+      </div>
+      <button onclick="closeSaveProto()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
+    <!-- Body -->
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Save section (shown only in custom mode) -->
+      <div id="save-proto-save-section">
+        <div style="font-size:11px;font-weight:800;color:#334155;margin-bottom:6px;">💾 บันทึกสูตรปัจจุบัน</div>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="save-proto-input" placeholder="ตั้งชื่อสูตร เช่น BEP modified..."
+            class="inp" style="flex:1;font-size:13px;font-weight:700;"
+            onkeydown="if(event.key==='Enter')doSaveProtocol()">
+          <button onclick="doSaveProtocol()"
+            style="background:linear-gradient(135deg,#059669,#0891b2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">
+            บันทึก
+          </button>
+        </div>
+        <div id="save-proto-status" style="font-size:11px;color:#059669;margin-top:4px;font-weight:700;min-height:16px;"></div>
+        <div style="border-top:1px solid #e8edf5;margin-top:10px;"></div>
+      </div>
+
+      <!-- Manage / Delete section (always shown) -->
+      <div>
+        <div style="font-size:11px;font-weight:800;color:#334155;margin-bottom:6px;">📋 สูตรที่บันทึกไว้ — กดเพื่อใช้ หรือ ✕ เพื่อลบ</div>
+        <div id="saved-proto-list" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto;"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OCR MODAL ════════════════════════════════════ -->
+<div id="ocr-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(10,15,30,0.82);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:18px;width:min(900px,96vw);height:min(560px,88vh);display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,0.5);overflow:hidden;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0f172a,#1e1b4b);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div style="width:30px;height:30px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">📷</div>
+      <div style="flex:1;">
+        <span style="font-size:14px;font-weight:900;color:#fff;">สแกน Chemo Order</span>
+        <span style="font-size:10px;color:#818cf8;margin-left:8px;">Claude AI · แก้ไขได้ก่อนกด "ใช้"</span>
+      </div>
+      <!-- API Key inline -->
+      <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:4px 9px;">
+        <span style="font-size:10px;color:#818cf8;">🔑</span>
+        <input type="password" id="ocr-apikey-input" placeholder="sk-ant-api03-..."
+          style="background:transparent;border:none;outline:none;font-size:10px;font-family:monospace;color:#e2e8f0;width:160px;" />
+        <button onclick="saveAPIKey()" style="background:#6366f1;color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800;cursor:pointer;">OK</button>
+        <span id="ocr-key-status" style="font-size:10px;color:#94a3b8;min-width:20px;"></span>
+      </div>
+      <button onclick="closeOCR()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px;">✕</button>
+    </div>
+
+    <!-- 3-col body, no scroll -->
+    <div style="flex:1;display:flex;overflow:hidden;min-height:0;">
+
+      <!-- Col 1: Drop / Thumbnail / Status -->
+      <div style="width:168px;flex-shrink:0;border-right:1px solid #e8edf5;display:flex;flex-direction:column;align-items:center;padding:12px 10px;gap:8px;background:#fafaff;">
+        <div id="ocr-dropzone"
+          ondragover="event.preventDefault();this.style.borderColor='#6366f1';this.style.background='#eef';"
+          ondragleave="this.style.borderColor='#c4b5fd';this.style.background='transparent';"
+          ondrop="handleOCRDrop(event)"
+          onclick="document.getElementById('ocr-file-input').click()"
+          style="border:2px dashed #c4b5fd;border-radius:10px;padding:16px 8px;text-align:center;cursor:pointer;width:100%;transition:all 0.2s;">
+          <div style="font-size:26px;margin-bottom:4px;">🖼️</div>
+          <div style="font-size:11px;font-weight:700;color:#4f46e5;">ลากรูปมาวาง</div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:2px;">หรือคลิกเลือกไฟล์</div>
+        </div>
+        <img id="ocr-img" style="display:none;width:100%;border-radius:8px;border:1.5px solid #e2e8f0;object-fit:contain;max-height:250px;flex-shrink:0;">
+        <div id="ocr-status" style="display:none;width:100%;border-radius:7px;padding:6px 8px;font-size:10px;font-weight:700;text-align:center;word-break:break-word;"></div>
+      </div>
+
+      <!-- Col 2: Patient data (compact, always editable) -->
+      <div style="width:200px;flex-shrink:0;border-right:1px solid #e8edf5;padding:10px 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+          <div style="font-size:11px;font-weight:800;color:#334155;">👤 ข้อมูลคนไข้</div>
+          <span style="font-size:9px;color:#94a3b8;font-weight:600;">แก้ไขได้</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;flex:1;">
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Wt (kg)</div><input type="number" id="rev-wt"  class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Ht (cm)</div><input type="number" id="rev-ht"  class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Age</div><input type="number" id="rev-age" class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Sex</div><select id="rev-sex" class="inp" style="font-size:12px;padding:4px 4px;"><option value="M">ชาย</option><option value="F">หญิง</option></select></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">SCr</div><input type="number" id="rev-scr" class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;" step="0.1"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">WBC</div><input type="number" id="rev-wbc" class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">ANC</div><input type="number" id="rev-anc" class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Hb</div><input type="number" id="rev-hb"  class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;" step="0.1"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Plt ×10³</div><input type="number" id="rev-plt" class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+          <div><div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:2px;">Neut%</div><input type="number" id="rev-neut" class="inp" style="font-size:13px;font-weight:800;padding:4px 6px;"></div>
+        </div>
+      </div>
+
+      <!-- Col 3: Protocol + Drugs + Apply -->
+      <div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;min-width:0;">
+        <div style="flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-size:11px;font-weight:800;color:#4f46e5;">🧬 สูตรยา</div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <select id="rev-protocol" class="inp"
+              style="flex:1;font-size:13px;font-weight:800;color:#4f46e5;"
+              onchange="onRevProtocolChange(this.value)">
+              <option value="">— เลือกสูตรยา —</option>
+            </select>
+            <button onclick="clearRevProtocol()"
+              style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:13px;font-weight:900;line-height:1;flex-shrink:0;" title="ล้าง">✕</button>
+          </div>
+          <!-- Custom name input (shown when "กำหนดเอง" selected) -->
+          <div id="rev-custom-name-row" style="display:none;margin-top:5px;display:none;">
+            <input type="text" id="rev-custom-name" class="inp"
+              style="font-size:13px;font-weight:700;color:#334155;"
+              placeholder="ชื่อสูตรใหม่ (จะบันทึกที่หน้าจอหลัก)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();applyOCRResult();}">
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;flex-shrink:0;">
+            <div style="font-size:11px;font-weight:800;color:#334155;">💊 รายการยา & ขนาด</div>
+            <button onclick="addOCRDrugRow()" style="background:#4f46e5;color:#fff;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:3px;">
+              <span style="font-size:14px;line-height:1;">+</span> เพิ่มยา
+            </button>
+          </div>
+          <div id="rev-drugs-container" style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;flex:1;"></div>
+        </div>
+        <button onclick="applyOCRResult()" id="ocr-apply-main"
+          style="width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,0.3);flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;">
+          ✅ ใช้ข้อมูลนี้ทั้งหมด
+          <span style="font-size:10px;opacity:0.7;font-weight:600;">(Enter)</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>
-// ═══ OCR — Claude Vision + API Key ══════════════════════════════════
+// ═══ OCR — Claude Vision + Editable Review ══════════════════════════
 let ocrParsed = null;
 
-// Load saved key on startup
 window.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('onco_apikey');
     if (saved) {
         document.getElementById('ocr-apikey-input').value = saved;
-        document.getElementById('ocr-key-status').innerHTML = '✅ API Key บันทึกไว้แล้ว พร้อมใช้งาน';
+        document.getElementById('ocr-key-status').innerHTML = '✅ API Key พร้อมใช้งาน';
         document.getElementById('ocr-key-status').style.color = '#15803d';
     }
 });
@@ -553,18 +639,17 @@ window.addEventListener('DOMContentLoaded', () => {
 function saveAPIKey() {
     const key = document.getElementById('ocr-apikey-input').value.trim();
     if (!key.startsWith('sk-ant')) {
-        document.getElementById('ocr-key-status').innerHTML = '❌ Key ไม่ถูกต้อง ต้องขึ้นต้นด้วย sk-ant...';
+        document.getElementById('ocr-key-status').innerHTML = '❌ Key ไม่ถูกต้อง (ต้องขึ้นต้นด้วย sk-ant)';
         document.getElementById('ocr-key-status').style.color = '#dc2626';
         return;
     }
     localStorage.setItem('onco_apikey', key);
-    document.getElementById('ocr-key-status').innerHTML = '✅ บันทึกแล้ว พร้อมใช้งาน';
+    document.getElementById('ocr-key-status').innerHTML = '✅ บันทึกแล้ว';
     document.getElementById('ocr-key-status').style.color = '#15803d';
 }
 
 function getAPIKey() {
-    return (document.getElementById('ocr-apikey-input').value.trim()) ||
-           (localStorage.getItem('onco_apikey') || '');
+    return document.getElementById('ocr-apikey-input').value.trim() || localStorage.getItem('onco_apikey') || '';
 }
 
 function openOCR() {
@@ -572,17 +657,60 @@ function openOCR() {
     const saved = localStorage.getItem('onco_apikey');
     if (saved) {
         document.getElementById('ocr-apikey-input').value = saved;
-        document.getElementById('ocr-key-status').innerHTML = '✅ API Key บันทึกไว้แล้ว พร้อมใช้งาน';
+        document.getElementById('ocr-key-status').innerHTML = '✅';
         document.getElementById('ocr-key-status').style.color = '#15803d';
     }
+    // Pre-fill patient fields from main form
+    const prefill = {
+        'rev-wt':   document.getElementById('wt')?.value,
+        'rev-ht':   document.getElementById('ht')?.value,
+        'rev-age':  document.getElementById('age')?.value,
+        'rev-scr':  document.getElementById('scr')?.value,
+        'rev-wbc':  document.getElementById('wbc')?.value,
+        'rev-hb':   document.getElementById('hb')?.value,
+        'rev-plt':  document.getElementById('plt')?.value,
+        'rev-neut': document.getElementById('neut')?.value,
+    };
+    Object.entries(prefill).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && val) el.value = val;
+    });
+    const mainSex = document.getElementById('sex')?.value;
+    if (mainSex) { const s = document.getElementById('rev-sex'); if (s) s.value = mainSex; }
+
+    // Populate protocol select (current main selection pre-selected)
+    const currentProto = document.getElementById('protocol-select')?.value || '';
+    populateRevProtocolSelect(currentProto && db[currentProto] ? currentProto : '');
+
+    // Enter key in popup → apply (except protocol which has its own handler)
+    const modal = document.getElementById('ocr-modal');
+    modal._enterHandler = (e) => {
+        if (e.key !== 'Enter') return;
+        const tag = e.target.tagName;
+        if (tag === 'BUTTON') { e.target.click(); return; }
+        // Inputs inside modal (but not protocol — it has inline handler)
+        if (tag === 'INPUT' && e.target.id !== 'rev-protocol' && e.target.id !== 'ocr-apikey-input') {
+            e.preventDefault();
+            applyOCRResult();
+        }
+    };
+    modal.addEventListener('keydown', modal._enterHandler);
 }
 
 function closeOCR() {
-    document.getElementById('ocr-modal').style.display = 'none';
+    const modal = document.getElementById('ocr-modal');
+    modal.style.display = 'none';
+    if (modal._enterHandler) { modal.removeEventListener('keydown', modal._enterHandler); modal._enterHandler = null; }
     ocrParsed = null;
-    ['ocr-status','ocr-preview','ocr-result'].forEach(id => document.getElementById(id).style.display = 'none');
-    document.getElementById('ocr-apply-btn').style.display = 'none';
-    document.getElementById('ocr-dropzone').style.display = '';
+    const dz = document.getElementById('ocr-dropzone');
+    if (dz) dz.style.display = '';
+    const img = document.getElementById('ocr-img');
+    if (img) { img.style.display = 'none'; img.src = ''; }
+    const st = document.getElementById('ocr-status');
+    if (st) st.style.display = 'none';
+    const dc = document.getElementById('rev-drugs-container');
+    if (dc) dc.innerHTML = '';
+    _revDrugCount = 0;
 }
 
 function handleOCRFile(e) {
@@ -601,35 +729,30 @@ function handleOCRDrop(e) {
 function setStatus(msg, type) {
     const el = document.getElementById('ocr-status');
     el.style.display = '';
-    const styles = {
+    const s = {
         info:    'background:#f0f9ff;border:1.5px solid #7dd3fc;color:#0369a1;',
         success: 'background:#f0fdf4;border:1.5px solid #86efac;color:#15803d;',
         warn:    'background:#fffbeb;border:1.5px solid #fcd34d;color:#92400e;',
-        error:   'background:#fef2f2;border:1.5px solid #fca5a5;color:#991b1b;'
+        error:   'background:#fef2f2;border:1.5px solid #fca5a5;color:#991b1b;',
     };
-    el.style.cssText = (styles[type] || styles.info) + 'border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;text-align:center;margin-bottom:10px;';
+    el.style.cssText = (s[type]||s.info) + 'border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;text-align:center;';
     el.innerHTML = msg;
 }
 
 async function processOCRFile(file) {
     const apiKey = getAPIKey();
-    if (!apiKey) {
-        setStatus('❌ กรุณากรอก API Key ก่อน', 'error');
-        return;
-    }
+    if (!apiKey) { setStatus('❌ กรุณากรอก API Key ก่อน', 'error'); return; }
 
-    // Read as base64
     const dataUrl = await new Promise(res => {
         const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file);
     });
     const base64 = dataUrl.split(',')[1];
     const mediaType = file.type || 'image/jpeg';
 
-    // Show preview
     document.getElementById('ocr-img').src = dataUrl;
-    document.getElementById('ocr-preview').style.display = '';
+    document.getElementById('ocr-img').style.display = '';
     document.getElementById('ocr-dropzone').style.display = 'none';
-    setStatus('🔍 Claude กำลังอ่านใบ Order... รอสักครู่', 'info');
+    setStatus('🔍 Claude กำลังอ่านใบ Order...', 'info');
 
     try {
         const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -642,187 +765,388 @@ async function processOCRFile(file) {
             },
             body: JSON.stringify({
                 model: 'claude-sonnet-4-6',
-                max_tokens: 1000,
+                max_tokens: 1200,
                 messages: [{
                     role: 'user',
                     content: [
                         { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-                        { type: 'text', text: `อ่านใบ Chemotherapy Order นี้ แล้วตอบเป็น JSON เท่านั้น ห้าม output อื่น:
-{
-  "wt": <น้ำหนัก kg ตัวเลขเท่านั้น หรือ null>,
-  "ht": <ส่วนสูง cm ตัวเลขเท่านั้น หรือ null>,
-  "bsa": <BSA m² ตัวเลขเท่านั้น หรือ null>,
-  "wbc": <WBC ตัวเลขเท่านั้น หรือ null>,
-  "anc": <ANC ตัวเลขเท่านั้น หรือ null>,
-  "hb": <Hb ตัวเลขเท่านั้น หรือ null>,
-  "plt": <Platelets ตัวเลข x1000 เช่น ถ้าเห็น 253000 ให้ใส่ 253 หรือ null>,
-  "scr": <Creatinine ตัวเลขเท่านั้น หรือ null>,
-  "neut_pct": <Neutrophil % ตัวเลขเท่านั้น หรือ null>,
-  "protocol": <ชื่อสูตรยาจาก header ของใบ order เช่น mFOLFOX6 หรือ null>,
-  "drugs": [{ "name": <ชื่อยา>, "dose_mg": <ขนาดยา mg ที่สั่ง ตัวเลขเท่านั้น หรือ null>, "diluent": <วิธีให้ยา หรือ null> }]
-}
-ข้อมูลที่ไม่แน่ใจหรือไม่เห็นชัดให้ใส่ null` }
+                        { type: 'text', text: `อ่านใบ Chemotherapy Order แล้วตอบ JSON เท่านั้น ห้าม output อื่น:
+{"wt":null,"ht":null,"bsa":null,"wbc":null,"anc":null,"hb":null,"plt":null,"scr":null,"neut_pct":null,"protocol":null,"drugs":[{"name":"","dose_mg":null,"diluent":null}]}
+- plt ให้ใส่ค่า x1000 (เช่น 253000→253)
+- protocol คือชื่อสูตรจาก header ใบ order
+- drugs คือรายการยาเคมีบำบัดที่สั่งจริง พร้อม dose mg และวิธีให้ยา
+- ข้อมูลไม่ชัด ใส่ null` }
                     ]
                 }]
             })
         });
-
-        if (!resp.ok) {
-            const err = await resp.json();
-            throw new Error(err.error?.message || `HTTP ${resp.status}`);
-        }
-
+        if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || `HTTP ${resp.status}`); }
         const data = await resp.json();
-        const text = data.content?.map(c => c.text || '').join('') || '';
-        const match = text.match(/\{[\s\S]*\}/);
-        if (!match) throw new Error('ไม่พบ JSON ในผลลัพธ์');
-        ocrParsed = JSON.parse(match[0]);
-        showOCRPreview(ocrParsed);
-
-    } catch (err) {
+        const txt = data.content?.map(c => c.text||'').join('') || '';
+        const m = txt.match(/\{[\s\S]*\}/);
+        if (!m) throw new Error('ไม่พบ JSON');
+        ocrParsed = JSON.parse(m[0]);
+        renderReviewForm(ocrParsed);
+        setStatus('✅ อ่านสำเร็จ — ตรวจสอบและแก้ไขได้เลยก่อนกด "ใช้"', 'success');
+    } catch(err) {
         setStatus(`❌ ${err.message}`, 'error');
     }
 }
 
-function showOCRPreview(d) {
-    const fields = [
-        d.wt, d.ht, d.bsa, d.wbc, d.hb, d.plt, d.scr, d.protocol,
-        ...(d.drugs||[]).map(x => x.dose_mg)
-    ].filter(v => v !== null && v !== undefined);
+// ── Render editable review form ──────────────────────────────────────
+function renderReviewForm(d) {
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el && val !== null && val !== undefined) el.value = val; };
+    setVal('rev-wt', d.wt); setVal('rev-ht', d.ht); setVal('rev-scr', d.scr);
+    setVal('rev-wbc', d.wbc); setVal('rev-anc', d.anc); setVal('rev-hb', d.hb);
+    setVal('rev-plt', d.plt); setVal('rev-neut', d.neut_pct);
+    const mainAge = document.getElementById('age')?.value;
+    const mainSex = document.getElementById('sex')?.value;
+    if (mainAge) setVal('rev-age', mainAge);
+    if (mainSex) { const s = document.getElementById('rev-sex'); if(s) s.value = mainSex; }
 
-    if (!fields.length) {
-        setStatus('⚠️ อ่านได้แต่ไม่พบข้อมูลที่ชัดเจน', 'warn');
-        return;
-    }
-    setStatus('✅ อ่านสำเร็จ — ตรวจสอบก่อนกด "ใช้ข้อมูล"', 'success');
+    const matchedProto = findBestProtocol(d.protocol, d.drugs);
+    populateRevProtocolSelect(matchedProto);
 
-    const row = (icon, label, val, unit='') =>
-        `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #f1f5f9;">
-            <span style="font-size:14px;">${icon}</span>
-            <span style="font-size:11px;font-weight:700;color:#64748b;min-width:80px;">${label}</span>
-            <span style="font-size:13px;font-weight:900;color:#1e293b;">${val} <span style="font-size:10px;font-weight:600;color:#94a3b8;">${unit}</span></span>
-        </div>`;
-
-    let html = '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;">';
-    html += '<div style="font-size:12px;font-weight:800;color:#334155;margin-bottom:8px;">📋 ข้อมูลที่อ่านได้</div>';
-
-    if (d.protocol) html += row('🧬', 'Protocol', `<span style="color:#4f46e5;">${d.protocol}</span>`);
-    if (d.wt)       html += row('⚖️', 'น้ำหนัก', d.wt, 'kg');
-    if (d.ht)       html += row('📏', 'ส่วนสูง', d.ht, 'cm');
-    if (d.bsa)      html += row('📐', 'BSA', d.bsa, 'm²');
-    if (d.scr)      html += row('🔬', 'SCr', d.scr, 'mg/dL');
-    if (d.wbc)      html += row('🩸', 'WBC', d.wbc);
-    if (d.anc)      html += row('🛡️', 'ANC', d.anc);
-    if (d.hb)       html += row('💉', 'Hb', d.hb, 'g/dL');
-    if (d.plt)      html += row('🟣', 'Plt (×10³)', d.plt);
-    if (d.neut_pct) html += row('🔵', 'Neutrophil', d.neut_pct, '%');
-
+    const container = document.getElementById('rev-drugs-container');
+    container.innerHTML = '';
+    _revDrugCount = 0;
     if (d.drugs?.length) {
-        html += '<div style="font-size:11px;font-weight:800;color:#334155;margin:10px 0 6px;">💊 รายการยา</div>';
-        d.drugs.forEach(drug => {
-            html += `<div style="background:#fff;border:1.5px solid #e0e7ff;border-radius:7px;padding:7px 10px;margin-bottom:5px;">
-                <div style="font-weight:800;color:#1e293b;font-size:13px;">${drug.name}
-                ${drug.dose_mg !== null ? `<span style="background:#eef2ff;color:#4f46e5;font-weight:900;padding:1px 8px;border-radius:5px;margin-left:6px;font-size:13px;">${drug.dose_mg} mg</span>` : ''}
-                </div>
-                ${drug.diluent ? `<div style="color:#64748b;font-size:10px;margin-top:2px;">${drug.diluent}</div>` : ''}
-            </div>`;
-        });
+        d.drugs.forEach(drug => addOCRDrugRow(drug.name, drug.dose_mg, drug.diluent));
+    } else {
+        addOCRDrugRow();
     }
-    html += '</div>';
-
-    document.getElementById('ocr-result').innerHTML = html;
-    document.getElementById('ocr-result').style.display = '';
-    document.getElementById('ocr-apply-btn').style.display = '';
 }
 
-function applyOCRResult() {
-    if (!ocrParsed) return;
-    const d = ocrParsed;
+// ── Protocol select helpers in OCR popup ────────────────────────────
+function populateRevProtocolSelect(selectedKey) {
+    const sel = document.getElementById('rev-protocol');
+    if (!sel) return;
+    const allKeys = Object.keys(db).filter(k => k !== 'CUSTOM').sort();
 
-    // Patient data
-    if (d.wt)       document.getElementById('wt').value  = d.wt;
-    if (d.ht)       document.getElementById('ht').value  = d.ht;
-    if (d.scr)      document.getElementById('scr').value = d.scr;
-    if (d.wbc)      document.getElementById('wbc').value = d.wbc;
-    if (d.hb)       document.getElementById('hb').value  = d.hb;
-    if (d.plt)      document.getElementById('plt').value = d.plt;
-    if (d.neut_pct) document.getElementById('neut').value = d.neut_pct;
+    sel.innerHTML = '<option value="">— เลือกสูตรยา —</option>';
+    allKeys.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = k;
+        if (k === selectedKey) opt.selected = true;
+        sel.appendChild(opt);
+    });
+    // Add custom option at bottom
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '✏️ กำหนดเอง (สร้างสูตรใหม่)';
+    sel.appendChild(customOpt);
 
-    // ── Auto-select protocol ─────────────────────────────────────────
-    if (d.protocol) {
-        const keys = Object.keys(db).filter(k => k !== 'CUSTOM');
-        const ocrProto = d.protocol.toLowerCase().replace(/[\s\-\/]/g, '');
+    // Show/hide custom name input
+    onRevProtocolChange(sel.value);
+}
 
-        // Score each key: count matching chars/tokens
-        let bestKey = null, bestScore = 0;
-        keys.forEach(key => {
-            const norm = key.toLowerCase().replace(/[\s\-\/]/g, '');
-            // Exact contains
-            if (norm.includes(ocrProto) || ocrProto.includes(norm)) {
-                const score = Math.min(norm.length, ocrProto.length);
-                if (score > bestScore) { bestScore = score; bestKey = key; }
+function onRevProtocolChange(val) {
+    const row = document.getElementById('rev-custom-name-row');
+    if (!row) return;
+    if (val === '__custom__') {
+        row.style.display = '';
+        setTimeout(() => document.getElementById('rev-custom-name')?.focus(), 50);
+    } else {
+        row.style.display = 'none';
+    }
+}
+
+function clearRevProtocol() {
+    const sel = document.getElementById('rev-protocol');
+    if (sel) sel.value = '';
+    onRevProtocolChange('');
+    const nameEl = document.getElementById('rev-custom-name');
+    if (nameEl) nameEl.value = '';
+}
+
+function updateRevProtocolDisplay() {} // compat stub
+function renderProtocolPicker() {}     // compat stub
+function selectPickerProtocol(key) {
+    const sel = document.getElementById('rev-protocol');
+    if (sel) { sel.value = key; onRevProtocolChange(key); }
+}
+
+function renderProtocolPicker(ocrDrugs, selectedKey) {
+    const picker = document.getElementById('rev-protocol-picker');
+    if (!picker) return;
+    const allKeys = Object.keys(db).filter(k => k !== 'CUSTOM');
+    const drugWords = (ocrDrugs||[]).flatMap(d =>
+        (d.name||'').toLowerCase().split(/[\s\(\)\/\-]+/).filter(w => w.length > 3)
+    );
+    const scored = allKeys.map(k => {
+        const kDrugs = (db[k]||[]).map(d => d.name.toLowerCase());
+        const score = drugWords.filter(w => kDrugs.some(kd => kd.includes(w))).length;
+        return { k, score };
+    }).sort((a,b) => b.score - a.score);
+    const top = scored.slice(0,8), rest = scored.slice(8);
+    const btn = (k, score) => {
+        const isSel = k === selectedKey, hasSug = score > 0;
+        const esc = k.replace(/'/g, "\\'");
+        return `<button onclick="selectPickerProtocol('${esc}')"
+            style="background:${isSel?'#4f46e5':hasSug?'#eff6ff':'#f8fafc'};border:1.5px solid ${isSel?'#4f46e5':hasSug?'#93c5fd':'#e2e8f0'};
+            color:${isSel?'#fff':hasSug?'#1d4ed8':'#64748b'};border-radius:6px;padding:4px 10px;font-size:11px;
+            font-weight:${hasSug||isSel?800:600};cursor:pointer;white-space:nowrap;">${k}${hasSug&&!isSel?` <span style="font-size:9px;opacity:0.6;">(${score}✓)</span>`:''}</button>`;
+    };
+    picker.innerHTML = `<div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:5px;">
+        ${selectedKey?`✅ <strong style="color:#4f46e5;">${selectedKey}</strong>`:'⬇ เลือกสูตรยา'}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">${top.map(({k,score})=>btn(k,score)).join('')}</div>
+        ${rest.length?`<details style="margin-top:4px;"><summary style="font-size:10px;color:#94a3b8;cursor:pointer;font-weight:600;">ดูทั้งหมด (${allKeys.length})...</summary>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${rest.map(({k,score})=>btn(k,score)).join('')}</div></details>`:''}`;
+}
+
+function selectPickerProtocol(key) {
+    document.getElementById('rev-protocol').value = key;
+    updateRevProtocolDisplay(key);
+    const ocrDrugs = [...document.querySelectorAll('#rev-drugs-container > div')].map(row => ({
+        name: row.querySelectorAll('input')[0]?.value || ''
+    }));
+    renderProtocolPicker(ocrDrugs, key);
+}
+
+
+let _revDrugCount = 0;
+function addOCRDrugRow(name='', dose=null, diluent='') {
+    const container = document.getElementById('rev-drugs-container');
+    const id = _revDrugCount++;
+    const div = document.createElement('div');
+    div.id = `rev-drug-row-${id}`;
+    div.style.cssText = 'display:grid;grid-template-columns:1fr 68px 1fr auto;gap:4px;align-items:center;background:#fff;border:1.5px solid #e8edf5;border-radius:7px;padding:5px 7px;';
+    div.innerHTML = `
+        <input type="text" value="${name||''}" placeholder="ชื่อยา"
+            style="border:1.5px solid #dde3ef;border-radius:5px;padding:4px 7px;font-size:12px;font-weight:700;color:#1e293b;font-family:inherit;width:100%;box-sizing:border-box;">
+        <input type="number" value="${dose??''}" placeholder="mg"
+            style="border:1.5px solid #dde3ef;border-radius:5px;padding:4px 5px;font-size:13px;font-weight:900;text-align:center;color:#4f46e5;font-family:ui-monospace,monospace;width:100%;box-sizing:border-box;">
+        <input type="text" value="${diluent||''}" placeholder="วิธีให้ยา"
+            style="border:1.5px solid #dde3ef;border-radius:5px;padding:4px 7px;font-size:11px;color:#475569;font-family:inherit;width:100%;box-sizing:border-box;">
+        <button onclick="document.getElementById('rev-drug-row-${id}').remove()"
+            style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:6px;padding:4px 7px;cursor:pointer;font-size:13px;font-weight:900;line-height:1;flex-shrink:0;white-space:nowrap;">✕</button>
+    `;
+    container.appendChild(div);
+}
+
+// ── Find best matching protocol ──────────────────────────────────────
+function findBestProtocol(protoStr, drugs) {
+    // All available keys: built-in + saved protocols
+    const allKeys = Object.keys(db).filter(k => k !== 'CUSTOM' && k !== 'Non-Protocol');
+
+    if (protoStr) {
+        const norm = protoStr.toLowerCase().replace(/[\s\-\/]/g, '');
+        let best = null, bestScore = 0;
+        allKeys.forEach(k => {
+            const kn = k.toLowerCase().replace(/[\s\-\/]/g, '');
+            if (kn.includes(norm) || norm.includes(kn)) {
+                const score = Math.min(kn.length, norm.length);
+                if (score > bestScore) { bestScore = score; best = k; }
             }
-            // Token overlap
-            const ocrTokens = ocrProto.match(/[a-z0-9]+/g) || [];
-            const keyTokens  = norm.match(/[a-z0-9]+/g) || [];
-            const shared = ocrTokens.filter(t => keyTokens.some(k => k.includes(t) || t.includes(k)));
-            if (shared.length > 0) {
+            const oTok = norm.match(/[a-z0-9]+/g)||[];
+            const kTok = kn.match(/[a-z0-9]+/g)||[];
+            const shared = oTok.filter(t => kTok.some(k2 => k2.includes(t)||t.includes(k2)));
+            if (shared.length) {
                 const score = shared.join('').length;
-                if (score > bestScore) { bestScore = score; bestKey = key; }
+                if (score > bestScore) { bestScore = score; best = k; }
             }
         });
-
-        if (bestKey) {
-            const sel = document.getElementById('protocol-select');
-            sel.value = bestKey;
-            sel.dispatchEvent(new Event('input'));   // triggers renderCards()
-            // After cards render, fill Rx doses
-            setTimeout(() => fillRxDoses(d.drugs), 150);
-        } else {
-            fillRxDoses(d.drugs);
-        }
-    } else {
-        fillRxDoses(d.drugs);
+        if (best) return best;
     }
 
-    calculateBiometrics();
+    // Fallback: score each key by drug name overlap
+    if (drugs?.length) {
+        const drugWords = drugs.flatMap(d =>
+            (d.name||'').toLowerCase().split(/[\s\(\)\/\-]+/).filter(w => w.length > 3)
+        );
+        let best = null, bestScore = 0;
+        allKeys.forEach(k => {
+            const kDrugs = (db[k]||[]).map(d => d.name.toLowerCase());
+            const score = drugWords.filter(w => kDrugs.some(kd => kd.includes(w))).length;
+            if (score > bestScore) { bestScore = score; best = k; }
+        });
+        if (bestScore >= 2) return best; // need at least 2 matching drug words
+    }
+
+    return null; // no match → show picker
+}
+
+// ── Collect from editable form and apply ────────────────────────────
+function applyOCRResult() {
+    const gv = id => { const el = document.getElementById(id); return el?.value.trim() || null; };
+
+    // ── 1. Copy ALL fields BEFORE calculateBiometrics ─────────────────
+    if (gv('rev-wt'))   document.getElementById('wt').value   = gv('rev-wt');
+    if (gv('rev-ht'))   document.getElementById('ht').value   = gv('rev-ht');
+    if (gv('rev-age'))  document.getElementById('age').value  = gv('rev-age');
+    const revSex = document.getElementById('rev-sex')?.value;
+    if (revSex) document.getElementById('sex').value = revSex;
+    if (gv('rev-scr'))  document.getElementById('scr').value  = gv('rev-scr');
+    if (gv('rev-wbc'))  document.getElementById('wbc').value  = gv('rev-wbc');
+    if (gv('rev-hb'))   document.getElementById('hb').value   = gv('rev-hb');
+    if (gv('rev-plt'))  document.getElementById('plt').value  = gv('rev-plt');
+    if (gv('rev-neut')) document.getElementById('neut').value = gv('rev-neut');
+
+    // ── 2. Protocol ────────────────────────────────────────────────────
+    let protoVal = document.getElementById('rev-protocol')?.value.trim() || '';
+    if (protoVal === '__custom__') protoVal = ''; // treat as no-protocol → custom mode
+
+    // ── 3. Collect OCR drug rows ───────────────────────────────────────
+    const rows = document.querySelectorAll('#rev-drugs-container > div');
+    const formDrugs = Array.from(rows).map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { name: inputs[0]?.value.trim()||'', dose_mg: parseFloat(inputs[1]?.value)||null, diluent: inputs[2]?.value.trim()||null };
+    }).filter(d => d.name);
+
+    // ── 4. Close modal immediately ─────────────────────────────────────
     closeOCR();
 
-    // Flash filled inputs green
-    ['wt','ht','scr','wbc','hb','plt','neut'].forEach(id => {
+    // ── 5. Calculate NOW ───────────────────────────────────────────────
+    calculateBiometrics();
+
+    // ── 6. Set up protocol + inject drugs ─────────────────────────────
+    const _sel = document.getElementById('protocol-select');
+
+    if (protoVal && db[protoVal] !== undefined && db[protoVal].length > 0) {
+        // Known protocol: load it, then fill Rx doses
+        _sel.value = protoVal;
+        _sel.dispatchEvent(new Event('input'));
+        setTimeout(() => fillDoses(formDrugs), 250);
+
+    } else if (protoVal === 'Non-Protocol' && formDrugs.length) {
+        // Non-Protocol: match drugs from list
+        _sel.value = 'Non-Protocol';
+        _sel.dispatchEvent(new Event('input'));
+        setTimeout(() => {
+            formDrugs.forEach(drug => {
+                const match = NON_PROTOCOL_DRUGS.find(d => {
+                    const words = drug.name.toLowerCase().split(/[\s\(\)\/]+/).filter(w => w.length > 3);
+                    return words.some(w => d.name.toLowerCase().includes(w));
+                });
+                if (match && !currentProtocolArray.some(d => d.name === match.name)) {
+                    currentProtocolArray.push({ ...match });
+                }
+            });
+            if (currentProtocolArray.length) renderNonProtocolCards();
+            setTimeout(() => fillDoses(formDrugs), 150);
+        }, 100);
+
+    } else {
+        // No match / custom / empty: inject OCR drugs directly as custom rows
+        // Smart target back-calculation from dose_mg
+        const calcTarget = (dose_mg, name) => {
+            if (!dose_mg) return 0;
+            const n = (name||'').toLowerCase();
+
+            // Weight-based drugs
+            const weightDrugs = ['trastuzumab','herceptin','bevacizumab','ramucirumab',
+                'panitumumab','pertuzumab','enhertu','deruxtecan','emtansine','durvalumab','ipilimumab'];
+            if (weightDrugs.some(w => n.includes(w))) {
+                return state.wt > 0 ? parseFloat((dose_mg / state.wt).toFixed(2)) : 0;
+            }
+            // Fixed-dose drugs (no target calc needed)
+            const fixedDrugs = ['pembrolizumab','nivolumab','atezolizumab','zoledronic'];
+            if (fixedDrugs.some(w => n.includes(w))) {
+                return dose_mg; // target = fixed dose
+            }
+            // AUC drugs
+            const aucDrugs = ['carboplatin'];
+            if (aucDrugs.some(w => n.includes(w)) && state.crcl > 0) {
+                return parseFloat((dose_mg / (state.crcl + 25)).toFixed(1));
+            }
+            // Default: BSA-based
+            return state.bsa > 0 ? parseFloat((dose_mg / state.bsa).toFixed(1)) : 0;
+        };
+
+        const guessBasis = (name) => {
+            const n = (name||'').toLowerCase();
+            const weightDrugs = ['trastuzumab','herceptin','bevacizumab','ramucirumab',
+                'panitumumab','pertuzumab','enhertu','deruxtecan','emtansine','durvalumab','ipilimumab'];
+            if (weightDrugs.some(w => n.includes(w))) return 'Weight';
+            const fixedDrugs = ['pembrolizumab','nivolumab','atezolizumab','zoledronic','dexamethasone'];
+            if (fixedDrugs.some(w => n.includes(w))) return 'Fixed';
+            const aucDrugs = ['carboplatin'];
+            if (aucDrugs.some(w => n.includes(w))) return 'AUC';
+            return 'BSA';
+        };
+
+        const injected = formDrugs.map(d => {
+            const basis = guessBasis(d.name);
+            const target = calcTarget(d.dose_mg, d.name);
+            return {
+                name: d.name || '', target, basis,
+                diluentText: d.diluent || '', defaultVol: null, day: ''
+            };
+        });
+        currentProtocolArray = injected.length ? injected : [{ name:'', target:0, basis:'BSA', diluentText:'', defaultVol:null, day:'' }];
+        isCustomMode = true;
+        _sel.value = 'CUSTOM';
+        document.getElementById('add-custom-btn').style.display = '';
+        renderCards();
+        // Fill Rx by index
+        setTimeout(() => {
+            formDrugs.forEach((drug, fi) => {
+                if (!drug.dose_mg) return;
+                const rxEl = document.getElementById(`rx-${fi}`);
+                if (rxEl) { rxEl.value = drug.dose_mg; updateSingleCard(fi); }
+            });
+        }, 150);
+    }
+
+
+    // ── 7. Flash filled fields ─────────────────────────────────────────
+    ['wt','ht','age','scr','wbc','hb','plt','neut'].forEach(id => {
         const el = document.getElementById(id);
         if (el?.value) {
-            el.style.borderColor='#4ade80'; el.style.background='#f0fdf4';
+            el.style.transition = 'border-color 0.3s, background 0.3s';
+            el.style.borderColor = '#4ade80';
+            el.style.background  = '#f0fdf4';
             setTimeout(() => { el.style.borderColor=''; el.style.background=''; }, 2000);
         }
     });
 }
 
-function fillRxDoses(drugs) {
-    if (!drugs?.length) return;
-    drugs.forEach(drug => {
-        if (drug.dose_mg === null) return;
-        currentProtocolArray.forEach((_, i) => {
-            const nameEl = document.getElementById(`name-${i}`);
-            if (!nameEl) return;
-            const rowName = nameEl.value.toLowerCase();
-            const ocrName = (drug.name || '').toLowerCase();
-            const words = ocrName.split(/[\s\(\)]+/).filter(w => w.length > 3);
-            if (words.some(w => rowName.includes(w))) {
-                const rxEl = document.getElementById(`rx-${i}`);
-                if (rxEl) { rxEl.value = drug.dose_mg; updateSingleCard(i); }
-            }
-        });
-    });
-}
-
-// Global drop anywhere
+// Global drop
 document.addEventListener('dragover', e => e.preventDefault());
 document.addEventListener('drop', e => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file?.type.startsWith('image/')) { openOCR(); processOCRFile(file); }
 });
+
+// ── Smart dose fill ───────────────────────────────────────────────────
+function fillDoses(drugs) {
+    if (!drugs?.length) return;
+    const fuDoses  = drugs.filter(d => d.dose_mg && isFU(d.name)).map(d=>d.dose_mg).sort((a,b)=>a-b);
+    const mtxDoses = drugs.filter(d => d.dose_mg && isMTX(d.name)).map(d=>d.dose_mg).sort((a,b)=>a-b);
+
+    drugs.forEach(drug => {
+        if (!drug.dose_mg) return;
+        const ocrName = drug.name.toLowerCase();
+        currentProtocolArray.forEach((_, i) => {
+            const nameEl = document.getElementById(`name-${i}`);
+            if (!nameEl) return;
+            const rowName = nameEl.value.toLowerCase();
+
+            // MTX: small=IT, large=IV
+            if (isMTX(drug.name) && mtxDoses.length === 2) {
+                const isIT = rowName.includes(' it') || rowName.includes('intrathecal');
+                if (isIT) { const r=document.getElementById(`rx-${i}`); if(r){r.value=mtxDoses[0];updateSingleCard(i);} return; }
+                if (rowName.includes('methotrexate')||rowName.includes('mtx')) { const r=document.getElementById(`rx-${i}`); if(r){r.value=mtxDoses[1];updateSingleCard(i);} return; }
+                return;
+            }
+            // 5-FU: small=bolus, large=continuous
+            if (isFU(drug.name) && fuDoses.length === 2) {
+                const isB = rowName.includes('bolus'), isC = rowName.includes('continuous')||rowName.includes('cont');
+                if (isB) { const r=document.getElementById(`rx-${i}`); if(r){r.value=fuDoses[0];updateSingleCard(i);} return; }
+                if (isC) { const r=document.getElementById(`rx-${i}`); if(r){r.value=fuDoses[1];updateSingleCard(i);} return; }
+            }
+            // Default fuzzy match
+            const words = ocrName.split(/[\s\(\)\/]+/).filter(w=>w.length>3);
+            if (words.some(w=>rowName.includes(w))) {
+                const r=document.getElementById(`rx-${i}`); if(r){r.value=drug.dose_mg;updateSingleCard(i);}
+            }
+        });
+    });
+}
+function isFU(name)  { const n=(name||'').toLowerCase(); return n.includes('5-fu')||n.includes('5fu')||n.includes('fluorouracil'); }
+function isMTX(name) { const n=(name||'').toLowerCase(); return n.includes('methotrexate')||n.includes('mtx'); }
 </script>
 <header>
     <!-- Canvas for particle field -->
@@ -897,16 +1221,16 @@ document.addEventListener('drop', e => {
         </svg>
     </div>
 
-    <!-- RIGHT: Status + Reset -->
+    <!-- RIGHT: Clock + Reset -->
     <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;position:relative;z-index:4;">
         <div style="text-align:right;">
-            <div style="font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.1em;">System</div>
-            <div style="font-size:12px;font-weight:800;color:#4ade80;display:flex;align-items:center;gap:6px;margin-top:2px;justify-content:flex-end;">
-                <div style="position:relative;width:7px;height:7px;">
+            <div style="font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.1em;" id="hdr-date">--</div>
+            <div style="font-size:15px;font-weight:900;color:#e2e8f0;font-family:ui-monospace,monospace;letter-spacing:0.06em;margin-top:1px;display:flex;align-items:center;gap:6px;">
+                <div style="position:relative;width:7px;height:7px;flex-shrink:0;">
                     <div class="status-ring"></div>
                     <div style="position:relative;z-index:1;width:7px;height:7px;border-radius:50%;background:#4ade80;"></div>
                 </div>
-                READY
+                <span id="hdr-time">--:--:--</span>
             </div>
         </div>
         <button onclick="resetApp()" class="btn btn-ghost" style="border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.1);color:#a5b4fc;">
@@ -1179,6 +1503,18 @@ document.addEventListener('drop', e => {
                     ✨ สร้างสูตรเอง
                 </button>
 
+                <!-- Manage saved protocols -->
+                <button onclick="openManageProtocols()"
+                    style="background:#f0fdf4;border:1.5px solid #86efac;color:#059669;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;">
+                    📋 สูตรของฉัน
+                </button>
+
+                <!-- Reset -->
+                <button onclick="resetApp()" class="btn btn-rose" style="padding:7px 12px;font-size:11px;font-weight:800;flex-shrink:0;">
+                    <svg style="width:13px;height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    เริ่มใหม่
+                </button>
+
                 <!-- Add Custom Drug -->
                 <button id="add-custom-btn" onclick="addCustomDrug()"
                     style="display:none;background:#eff6ff;border:1.5px solid #93c5fd;color:#1d4ed8;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">
@@ -1212,12 +1548,15 @@ document.addEventListener('drop', e => {
         </div>
 
         <!-- Drug List -->
-        <div id="drug-container" style="flex:1;overflow-y:auto;padding:14px 16px;">
+        <div id="drug-container" style="flex:1;overflow-y:auto;padding:14px 16px;border-radius:0 0 var(--radius) var(--radius);">
             <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:12px;">
                 <div style="width:56px;height:56px;border-radius:50%;background:#f8fafc;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;">
                     <svg style="width:28px;height:28px;color:#cbd5e1;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
-                <p style="font-size:13px;font-weight:600;color:#94a3b8;text-align:center;">พิมพ์ค้นหาหรือเลือกสูตรยาด้านบนเพื่อเริ่มประมวลผล</p>
+                <p style="font-size:13px;font-weight:600;color:#94a3b8;text-align:center;">เลือกสูตรยาด้านบน หรือ<br>
+                    <span style="color:#6366f1;font-weight:700;">ลากรูป Order มาวางที่นี่</span> /
+                    <span style="color:#6366f1;font-weight:700;">Ctrl+V</span> เพื่อสแกนอัตโนมัติ
+                </p>
             </div>
         </div>
     </section>
@@ -1243,7 +1582,8 @@ Carboplatin + 5-FU	Carboplatin	5	5%DW 100 ml IV 1 hr (D1)	AUC	100
 Carboplatin + 5-FU	5-Fluorouracil (5-FU)	1200	NSS 1000 ml IV 24 hr (D1-4)	BSA	1000
 Carboplatin/Paclitaxel q3wk	Paclitaxel	175	NSS 500 ml IV 3 hr	BSA	500
 Carboplatin/Paclitaxel q3wk	Carboplatin	5	5%DW 100 ml IV 1 hr	AUC	100
-Carboplatin CCRT	Carboplatin	2	5%DW 100 ml IV 1 hr	AUC	100
+Carboplatin Weekly	Carboplatin	2	5%DW 100 ml IV 1 hr	AUC	100
+MTX IT (Intrathecal)	Methotrexate	12	NSS 3 ml IT	Fixed	3
 Carbo/Paclitaxel (Weekly)	Paclitaxel	50	5%DW 250 ml IV 1 hr	BSA	250
 Carbo/Paclitaxel (Weekly)	Carboplatin	2	5%DW 100 ml IV 1 hr	AUC	100
 CHOP	Cyclophosphamide	750	NSS 100 ml IV 15 min	BSA	100
@@ -1340,6 +1680,54 @@ Object.keys(db).sort().forEach(key => {
     }
 });
 
+// ── Non-Protocol: single-drug entries for OCR fallback ──────────────
+const NON_PROTOCOL_DRUGS = [
+    { name: '5-Fluorouracil (5-FU)',            basis: 'BSA',    target: 400,  diluentText: 'NSS 100 ml IV drip',         defaultVol: 100  },
+    { name: 'Bleomycin',                        basis: 'BSA',    target: 10,   diluentText: 'NSS 50 ml IV push',          defaultVol: 50   },
+    { name: 'Bortezomib',                       basis: 'BSA',    target: 1.3,  diluentText: 'SC injection',               defaultVol: null },
+    { name: 'Capecitabine (PO)',                basis: 'BSA',    target: 1000, diluentText: 'Oral (BID x14 days)',         defaultVol: null },
+    { name: 'Carboplatin',                      basis: 'AUC',    target: 5,    diluentText: '5%DW 100 ml IV 1 hr',        defaultVol: 100  },
+    { name: 'Cisplatin',                        basis: 'BSA',    target: 75,   diluentText: 'NSS 250 ml IV 2 hr',         defaultVol: 250  },
+    { name: 'Cyclophosphamide',                 basis: 'BSA',    target: 600,  diluentText: 'NSS 100 ml IV 15 min',       defaultVol: 100  },
+    { name: 'Dacarbazine',                      basis: 'BSA',    target: 375,  diluentText: 'NSS 250 ml IV 1 hr',         defaultVol: 250  },
+    { name: 'Docetaxel',                        basis: 'BSA',    target: 75,   diluentText: 'NSS 250 ml IV 90 min',       defaultVol: 250  },
+    { name: 'Doxorubicin',                      basis: 'BSA',    target: 50,   diluentText: 'NSS 50 ml IV push',          defaultVol: 50   },
+    { name: 'Etoposide (VP-16)',                basis: 'BSA',    target: 100,  diluentText: '5%DW 500 ml IV',             defaultVol: 500  },
+    { name: 'Gemcitabine',                      basis: 'BSA',    target: 1000, diluentText: 'NSS 100 ml IV 30 min',       defaultVol: 100  },
+    { name: 'Ifosfamide',                       basis: 'BSA',    target: 1000, diluentText: '5%DW 1000 ml IV 24 hr',     defaultVol: 1000 },
+    { name: 'Irinotecan',                       basis: 'BSA',    target: 150,  diluentText: '5%DW 500 ml IV 90 min',     defaultVol: 500  },
+    { name: 'Leucovorin',                       basis: 'BSA',    target: 400,  diluentText: '5%DW 250 ml IV 2 hrs',      defaultVol: 250  },
+    { name: 'Mesna',                            basis: 'BSA',    target: 400,  diluentText: 'NSS 100 ml IV',             defaultVol: 100  },
+    { name: 'Methotrexate',                     basis: 'BSA',    target: 3500, diluentText: '5%DW 500 ml IV 2 hr',       defaultVol: 500  },
+    { name: 'Methotrexate IT',                  basis: 'Fixed',  target: 12,   diluentText: 'NSS 3 ml IT',               defaultVol: 3    },
+    { name: 'Nab-Paclitaxel (Abraxane)',        basis: 'BSA',    target: 125,  diluentText: 'NSS 100 ml IV 30 min',      defaultVol: 100  },
+    { name: 'Oxaliplatin',                      basis: 'BSA',    target: 85,   diluentText: '5%DW 250 ml IV 2 hrs',      defaultVol: 250  },
+    { name: 'Paclitaxel',                       basis: 'BSA',    target: 175,  diluentText: 'NSS 500 ml IV 3 hr',        defaultVol: 500  },
+    { name: 'Pemetrexed',                       basis: 'BSA',    target: 500,  diluentText: 'NSS 100 ml IV 10 min',      defaultVol: 100  },
+    { name: 'Topotecan',                        basis: 'BSA',    target: 1.5,  diluentText: 'NSS 100 ml IV 30 min',      defaultVol: 100  },
+    { name: 'Vinblastine',                      basis: 'BSA',    target: 6,    diluentText: 'NSS 50 ml IV push',         defaultVol: 50   },
+    { name: 'Vincristine',                      basis: 'BSA',    target: 1.4,  diluentText: 'NSS 50 ml IV free flow',    defaultVol: 50   },
+    { name: 'Vinorelbine',                      basis: 'BSA',    target: 25,   diluentText: 'NSS 50 ml IV 10 min',       defaultVol: 50   },
+    { name: 'Bevacizumab',                      basis: 'Weight', target: 7.5,  diluentText: 'NSS 100 ml IV 90 min',      defaultVol: 100  },
+    { name: 'Panitumumab',                      basis: 'Weight', target: 6,    diluentText: 'NSS 100 ml IV 1 hr',        defaultVol: 100  },
+    { name: 'Pertuzumab',                       basis: 'Fixed',  target: 840,  diluentText: 'NSS 250 ml IV 60 min',      defaultVol: 250  },
+    { name: 'Ramucirumab',                      basis: 'Weight', target: 8,    diluentText: 'NSS 250 ml IV 60 min',      defaultVol: 250  },
+    { name: 'Trastuzumab (Herceptin)',          basis: 'Weight', target: 6,    diluentText: 'NSS 250 ml IV 90 min',      defaultVol: 250  },
+    { name: 'Trastuzumab deruxtecan (T-DXd)',   basis: 'Weight', target: 5.4,  diluentText: '5%DW 100 ml IV 90 min',    defaultVol: 100  },
+    { name: 'Trastuzumab emtansine (T-DM1)',    basis: 'Weight', target: 3.6,  diluentText: '5%DW 100 ml IV 90 min',    defaultVol: 100  },
+    { name: 'Atezolizumab',                     basis: 'Fixed',  target: 1200, diluentText: 'NSS 250 ml IV 60 min',     defaultVol: 250  },
+    { name: 'Durvalumab',                       basis: 'Weight', target: 10,   diluentText: 'NSS 250 ml IV 60 min',     defaultVol: 250  },
+    { name: 'Ipilimumab',                       basis: 'Weight', target: 3,    diluentText: 'NSS 100 ml IV 90 min',     defaultVol: 100  },
+    { name: 'Nivolumab',                        basis: 'Fixed',  target: 240,  diluentText: '0.9% NaCl 100 ml IV 30m', defaultVol: 100  },
+    { name: 'Pembrolizumab',                    basis: 'Fixed',  target: 200,  diluentText: '0.9% NaCl 100 ml IV 30m', defaultVol: 100  },
+    { name: 'Zoledronic acid',                  basis: 'Fixed',  target: 4,    diluentText: 'NSS 100 ml IV 15 min',     defaultVol: 100  },
+];
+db['Non-Protocol'] = NON_PROTOCOL_DRUGS.map(d => ({ ...d }));
+
+// Add Non-Protocol to datalist
+const npOpt = document.createElement('option');
+npOpt.value = 'Non-Protocol';
+datalist.appendChild(npOpt);
 let state = { bsa: 0, crcl: 0, wt: 0 };
 let currentProtocolArray = [];
 let isCustomMode = false;
@@ -1551,14 +1939,22 @@ function calculateBiometrics() {
 document.getElementById('protocol-select').addEventListener('input', function(e) {
     const key = e.target.value;
     const addBtn = document.getElementById('add-custom-btn');
-    if (key === 'CUSTOM' || db[key]) {
-        isCustomMode = (key === 'CUSTOM');
-        currentProtocolArray = JSON.parse(JSON.stringify(db[key]));
-        if (isCustomMode) {
+    if (key === 'CUSTOM' || key === 'Non-Protocol' || db[key] !== undefined) {
+        // Custom mode: CUSTOM key, Non-Protocol, or a newly-created empty protocol
+        const isNewCustom = db[key] !== undefined && db[key].length === 0 && key !== 'CUSTOM' && key !== 'Non-Protocol';
+        isCustomMode = (key === 'CUSTOM' || isNewCustom);
+
+        if (key === 'Non-Protocol') {
+            currentProtocolArray = [];
+            addBtn.style.display = 'none';
+            renderNonProtocolPicker();
+        } else if (isCustomMode) {
+            currentProtocolArray = JSON.parse(JSON.stringify(db[key]));
             addBtn.style.display = '';
             if (currentProtocolArray.length === 0) addCustomDrug();
             else renderCards();
         } else {
+            currentProtocolArray = JSON.parse(JSON.stringify(db[key]));
             addBtn.style.display = 'none';
             renderCards();
         }
@@ -1575,6 +1971,125 @@ document.getElementById('protocol-select').addEventListener('input', function(e)
         `;
     }
 });
+
+function renderNonProtocolPicker() {
+    const container = document.getElementById('drug-container');
+    const opts = NON_PROTOCOL_DRUGS.map(d =>
+        `<option value="${d.name}">${d.name}</option>`
+    ).join('');
+
+    container.innerHTML = `
+        <div style="padding:12px 0;display:flex;flex-direction:column;gap:10px;height:100%;">
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <select id="np-drug-picker" class="inp" style="flex:1;font-size:13px;font-weight:700;">
+                    <option value="">-- เลือกยาที่ต้องการ --</option>
+                    ${opts}
+                </select>
+                <button onclick="addNonProtocolDrug()" style="background:#4f46e5;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0;">+ เพิ่มยา</button>
+            </div>
+            <div id="np-drug-list" style="flex:1;display:flex;flex-direction:column;gap:6px;overflow-y:auto;"></div>
+            <div style="flex-shrink:0;padding-top:8px;border-top:1px solid #e8edf5;display:flex;justify-content:flex-end;">
+                <button id="reset-btn-bottom" onclick="resetApp()" class="btn btn-rose">
+                    <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    เริ่มใหม่
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function addNonProtocolDrug() {
+    const picker = document.getElementById('np-drug-picker');
+    if (!picker?.value) return;
+    const drugName = picker.value;
+    const drugDef = NON_PROTOCOL_DRUGS.find(d => d.name === drugName);
+    if (!drugDef) return;
+
+    // Avoid duplicate
+    if (currentProtocolArray.some(d => d.name === drugName)) {
+        picker.value = '';
+        return;
+    }
+
+    currentProtocolArray.push({ ...drugDef });
+    picker.value = '';
+    renderNonProtocolCards();
+}
+
+function renderNonProtocolCards() {
+    // Re-render picker area then render drug cards normally into drug-container
+    renderNonProtocolPicker();
+    // Update the np-drug-list section with drug cards
+    const listEl = document.getElementById('np-drug-list');
+    if (!listEl) return;
+    if (currentProtocolArray.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center;color:#94a3b8;font-size:12px;padding:16px;">เลือกยาจาก dropdown ด้านบน</div>`;
+        return;
+    }
+    // Inject drug cards HTML into np-drug-list
+    const bases = ['BSA','AUC','Weight','Fixed'];
+    let html = `<div style="display:grid;grid-template-columns:1.8fr 1fr 1.8fr 1.5fr;gap:8px;padding:0 4px 4px;border-bottom:1px solid #e8edf5;margin-bottom:4px;">
+        <div class="col-head">Drug & Target</div>
+        <div class="col-head" style="text-align:center;">Calc.</div>
+        <div class="col-head">Admin & Conc</div>
+        <div class="col-head" style="text-align:center;">Rx & Var</div>
+    </div>`;
+    currentProtocolArray.forEach((drug, i) => {
+        const basisOpts = bases.map(b => `<option value="${b}" ${drug.basis===b?'selected':''}>${b}</option>`).join('');
+        const volDisplay = drug.defaultVol || '';
+        html += `<div class="drug-row" id="row-${i}" style="display:grid;grid-template-columns:1.8fr 1fr 1.8fr 1.5fr;gap:8px;align-items:center;position:relative;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <input type="text" id="name-${i}" class="inp" style="font-size:14px;font-weight:800;color:#1e293b;border-color:transparent;background:transparent;box-shadow:none;padding:2px 4px;flex:1;" value="${drug.name}">
+                    <button onclick="removeNonProtocolDrug(${i})" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:5px;padding:1px 5px;font-size:10px;font-weight:800;cursor:pointer;flex-shrink:0;">✕</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+                    <span style="font-size:10px;font-weight:800;color:#64748b;">Target:</span>
+                    <input type="number" id="target-${i}" step="0.1" class="inp" style="width:54px;font-size:12px;padding:2px 4px;text-align:center;font-weight:800;color:#4f46e5;" value="${drug.target}">
+                    <select id="basis-${i}" class="inp" style="width:62px;font-size:11px;padding:2px 3px;font-weight:800;">${basisOpts}</select>
+                    <select id="dred-${i}" class="inp dose-red-btn full" style="width:70px;font-size:10px;padding:2px 3px;font-weight:800;" onchange="updateSingleCard(${i})"><option value="100">ปกติ</option><option value="90">ลด 10%</option><option value="85">ลด 15%</option><option value="80">ลด 20%</option><option value="75">ลด 25%</option></select>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f5f3ff;border-radius:8px;border:1.5px solid #e0e7ff;padding:6px 4px;position:relative;min-height:52px;">
+                <div style="display:flex;align-items:baseline;gap:1px;">
+                    <span class="calc-dose" id="rec-${i}" style="font-size:20px;">0.0</span>
+                    <span style="font-size:10px;font-weight:800;color:#818cf8;">mg</span>
+                </div>
+                <div id="cap-note-${i}" style="display:none;"></div>
+                <div id="renal-warn-${i}" style="display:none;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:5;"><span class="chip chip-red" style="font-size:9px;">⚠ ปรับไต</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                <input type="text" id="diluent-${i}" class="inp" style="font-size:11px;padding:4px 8px;font-weight:600;" value="${drug.diluentText}" placeholder="สารละลาย">
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="font-size:10px;font-weight:800;color:#64748b;">Vol:</span>
+                    <input type="number" id="vol-${i}" class="inp" style="width:54px;font-size:11px;padding:3px 5px;text-align:center;font-weight:800;color:#4f46e5;" value="${volDisplay}" placeholder="ml">
+                    <div style="display:flex;align-items:center;gap:2px;background:#f8fafc;border:1px solid #e8edf5;border-radius:5px;padding:2px 6px;flex:1;justify-content:center;">
+                        <span style="font-size:10px;font-weight:700;color:#64748b;">Conc:</span>
+                        <span style="font-size:12px;font-weight:900;color:#4f46e5;" id="conc-${i}">--</span>
+                        <span style="font-size:9px;color:#94a3b8;">mg/ml</span>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+                <input type="number" step="0.1" id="rx-${i}" class="inp nav-input" style="font-size:20px;font-weight:900;text-align:center;height:52px;" placeholder="0">
+                <div id="var-${i}" class="var-badge var-empty" style="font-size:10px;min-height:52px;"><span>รอ</span></div>
+            </div>
+        </div>`;
+    });
+    listEl.innerHTML = html;
+    currentProtocolArray.forEach((_, i) => {
+        ['target','basis','rx','name','vol','diluent','dred'].forEach(p => {
+            const el = document.getElementById(`${p}-${i}`);
+            if (el) el.addEventListener('input', () => updateSingleCard(i));
+        });
+        updateSingleCard(i);
+    });
+}
+
+function removeNonProtocolDrug(i) {
+    currentProtocolArray.splice(i, 1);
+    renderNonProtocolCards();
+}
 
 function addCustomDrug() {
     currentProtocolArray.push({ name: "", target: "", basis: "BSA", diluentText: "", defaultVol: 100 });
@@ -1612,9 +2127,18 @@ function renderCards() {
 
             <!-- Col 1: Drug Name & Target -->
             <div style="display:flex;flex-direction:column;gap:5px;">
-                <input type="text" id="name-${i}" class="inp"
-                    style="font-size:16px;font-weight:800;color:#1e293b;border-color:transparent;background:transparent;box-shadow:none;padding:2px 4px;"
-                    value="${drug.name}" placeholder="ชื่อยา">
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <input type="text" id="name-${i}" class="inp"
+                        style="flex:1;font-size:16px;font-weight:800;color:#1e293b;border-color:transparent;background:transparent;box-shadow:none;padding:2px 4px;"
+                        value="${drug.name}" placeholder="ชื่อยา">
+                    <!-- Day badge -->
+                    <div style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+                        <span style="font-size:9px;font-weight:800;color:#64748b;">Day</span>
+                        <input type="text" id="day-${i}" class="inp"
+                            style="width:52px;font-size:11px;padding:2px 5px;text-align:center;font-weight:800;color:#0369a1;background:#eff6ff;border-color:#bfdbfe;"
+                            value="${drug.day||''}" placeholder="D1">
+                    </div>
+                </div>
                 <div style="display:flex;align-items:center;gap:4px;padding:0 2px;flex-wrap:wrap;">
                     <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">Target:</span>
                     <input type="number" id="target-${i}" step="0.1"
@@ -1686,7 +2210,13 @@ function renderCards() {
     });
 
     html += `</div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e8edf5;display:flex;justify-content:flex-end;">
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e8edf5;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <button id="save-protocol-btn" onclick="openSaveProtocol()" class="${isCustomMode ? '' : 'hidden-save'}"
+                style="${isCustomMode ? '' : 'display:none;'}background:linear-gradient(135deg,#059669,#0891b2);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(5,150,105,0.3);">
+                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                💾 บันทึกสูตรนี้
+            </button>
+            <div style="flex:1;"></div>
             <button id="reset-btn-bottom" onclick="resetApp()" class="btn btn-rose">
                 <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 เริ่มใหม่ (Reset All)
@@ -1697,7 +2227,7 @@ function renderCards() {
     container.innerHTML = html;
 
     currentProtocolArray.forEach((_, i) => {
-        ['target','basis','rx','name','vol','diluent','dred'].forEach(prefix => {
+        ['target','basis','rx','name','vol','diluent','dred','day'].forEach(prefix => {
             const el = document.getElementById(`${prefix}-${i}`);
             if (el) el.addEventListener('input', () => updateSingleCard(i));
         });
@@ -1921,10 +2451,181 @@ function printSummary() {
     win.document.close();
 }
 
+// ── Drag & Drop + Ctrl+V on drug-container → open OCR ──────────────
+(function initDropZone() {
+    function setup() {
+        const dc = document.getElementById('drug-container');
+        if (!dc) { setTimeout(setup, 200); return; }
+
+        // Visual feedback on drag over
+        dc.addEventListener('dragover', e => {
+            e.preventDefault(); e.stopPropagation();
+            dc.style.outline = '3px dashed #6366f1';
+            dc.style.outlineOffset = '-4px';
+            dc.style.background = 'rgba(99,102,241,0.04)';
+        });
+        dc.addEventListener('dragleave', e => {
+            dc.style.outline = '';
+            dc.style.outlineOffset = '';
+            dc.style.background = '';
+        });
+        dc.addEventListener('drop', e => {
+            e.preventDefault(); e.stopPropagation();
+            dc.style.outline = ''; dc.style.outlineOffset = ''; dc.style.background = '';
+            const file = e.dataTransfer.files[0];
+            if (file?.type.startsWith('image/')) { openOCR(); processOCRFile(file); }
+        });
+    }
+    window.addEventListener('DOMContentLoaded', setup);
+
+    // Ctrl+V / Cmd+V paste image anywhere
+    document.addEventListener('paste', e => {
+        const items = [...(e.clipboardData?.items||[])];
+        const imgItem = items.find(it => it.type.startsWith('image/'));
+        if (!imgItem) return;
+        const file = imgItem.getAsFile();
+        if (file) { openOCR(); processOCRFile(file); }
+    });
+})();
+
 // Biometric listeners
 document.querySelectorAll('#ht,#wt,#age,#sex,#scr,#wbc,#neut,#hb,#plt').forEach(el => {
     el.addEventListener('input', calculateBiometrics);
 });
+
+// ═══ REAL-TIME CLOCK ══════════════════════════════
+function updateClock() {
+    const now = new Date();
+    const days = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const d = document.getElementById('hdr-date');
+    const t = document.getElementById('hdr-time');
+    if (d) d.innerText = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
+    if (t) t.innerText = now.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ═══ SAVED PROTOCOLS (localStorage) ══════════════
+const SAVED_KEY = 'onco_saved_protocols';
+
+function getSavedProtocols() {
+    try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '{}'); } catch { return {}; }
+}
+function setSavedProtocols(obj) {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(obj));
+}
+
+// Inject saved protocols into db + datalist on load
+function loadSavedProtocolsIntoDB() {
+    const saved = getSavedProtocols();
+    const datalist = document.getElementById('protocol-options');
+    Object.entries(saved).forEach(([key, drugs]) => {
+        db[key] = drugs;
+        // Add to datalist if not already there
+        if (![...datalist.options].some(o => o.value === key)) {
+            const opt = document.createElement('option');
+            opt.value = key;
+            datalist.appendChild(opt);
+        }
+    });
+}
+loadSavedProtocolsIntoDB();
+
+function openSaveProtocol() {
+    // Show with save section visible (called from custom mode)
+    const saveSection = document.getElementById('save-proto-save-section');
+    if (saveSection) saveSection.style.display = '';
+
+    // Snapshot current drug array
+    const snap = currentProtocolArray.map((_, i) => ({
+        name:        document.getElementById(`name-${i}`)?.value || '',
+        target:      parseFloat(document.getElementById(`target-${i}`)?.value) || 0,
+        basis:       document.getElementById(`basis-${i}`)?.value || 'BSA',
+        diluentText: document.getElementById(`diluent-${i}`)?.value || '',
+        defaultVol:  parseFloat(document.getElementById(`vol-${i}`)?.value) || null,
+        day:         document.getElementById(`day-${i}`)?.value || '',
+    })).filter(d => d.name);
+
+    if (!snap.length) { alert('ไม่มีรายการยา'); return; }
+    window._snapToSave = snap;
+
+    document.getElementById('save-proto-input').value = '';
+    document.getElementById('save-proto-status').innerHTML = '';
+    document.getElementById('save-proto-modal').style.display = 'flex';
+    renderSavedList();
+    setTimeout(() => document.getElementById('save-proto-input').focus(), 100);
+}
+
+function openManageProtocols() {
+    // Show without save section (just manage/delete)
+    const saveSection = document.getElementById('save-proto-save-section');
+    if (saveSection) saveSection.style.display = 'none';
+    document.getElementById('save-proto-modal').style.display = 'flex';
+    renderSavedList();
+}
+
+function closeSaveProto() {
+    document.getElementById('save-proto-modal').style.display = 'none';
+}
+
+function doSaveProtocol() {
+    const name = document.getElementById('save-proto-input').value.trim();
+    if (!name) { document.getElementById('save-proto-input').focus(); return; }
+    const key = `⭐ ${name}`;
+    const saved = getSavedProtocols();
+    saved[key] = window._snapToSave;
+    setSavedProtocols(saved);
+    // Update db + datalist
+    db[key] = window._snapToSave;
+    const datalist = document.getElementById('protocol-options');
+    if (![...datalist.options].some(o => o.value === key)) {
+        const opt = document.createElement('option');
+        opt.value = key;
+        datalist.appendChild(opt);
+    }
+    renderSavedList();
+    document.getElementById('save-proto-input').value = '';
+    document.getElementById('save-proto-status').innerHTML = `✅ บันทึก "${key}" แล้ว`;
+    setTimeout(() => { document.getElementById('save-proto-status').innerHTML = ''; }, 2500);
+}
+
+function deleteSavedProtocol(key) {
+    const saved = getSavedProtocols();
+    delete saved[key];
+    setSavedProtocols(saved);
+    delete db[key];
+    const datalist = document.getElementById('protocol-options');
+    [...datalist.options].forEach(o => { if (o.value === key) o.remove(); });
+    renderSavedList();
+}
+
+function renderSavedList() {
+    const saved = getSavedProtocols();
+    const keys = Object.keys(saved);
+    const el = document.getElementById('saved-proto-list');
+    if (!keys.length) {
+        el.innerHTML = '<div style="color:#94a3b8;font-size:11px;text-align:center;padding:8px;">ยังไม่มีสูตรที่บันทึก</div>';
+        return;
+    }
+    el.innerHTML = keys.map(k => `
+        <div style="display:flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 10px;">
+            <div style="flex:1;font-size:12px;font-weight:700;color:#1e293b;">${k}</div>
+            <div style="font-size:10px;color:#94a3b8;">${saved[k].length} ยา</div>
+            <button onclick="loadSavedAndClose('${k.replace(/'/g,"\\\'")}')"
+                style="background:#eff6ff;border:1.5px solid #93c5fd;color:#1d4ed8;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;cursor:pointer;">ใช้</button>
+            <button onclick="deleteSavedProtocol('${k.replace(/'/g,"\\\'")}')"
+                style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:5px;padding:2px 6px;font-size:11px;font-weight:900;cursor:pointer;">✕</button>
+        </div>
+    `).join('');
+}
+
+function loadSavedAndClose(key) {
+    const sel = document.getElementById('protocol-select');
+    sel.value = key;
+    sel.dispatchEvent(new Event('input'));
+    closeSaveProto();
+}
 
 calculateBiometrics();
 </script>
