@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>OncoChex — Clinical Verifier</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -163,7 +163,66 @@
         }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
-        input[type="number"] { -moz-appearance: textfield; }
+        /* ── Responsive: iPad (768-1024px) ───────────────────────── */
+        @media (max-width: 1024px) {
+            body { padding: 6px; gap: 6px; }
+            aside { width: 220px !important; }
+            .field-label { font-size: 9px !important; }
+            .inp { font-size: 12px !important; padding: 5px 8px !important; }
+            .nav-input { font-size: 13px !important; height: 36px !important; padding: 4px 8px !important; }
+            .metric-val { font-size: 26px !important; }
+            header { height: 50px !important; padding: 0 12px !important; }
+            .hdr-title { font-size: 20px !important; }
+            .drug-row { padding: 6px 8px !important; }
+            .calc-dose { font-size: 16px !important; }
+            .drug-row > div:nth-child(1) { grid-column: 1 / -1; }
+        }
+
+        /* ── Responsive: iPhone / small mobile (< 768px) ──────────── */
+        @media (max-width: 767px) {
+            body {
+                padding: 4px;
+                gap: 4px;
+                height: auto !important;
+                overflow: auto !important;
+            }
+            header { height: auto !important; padding: 8px 12px !important; flex-wrap: wrap; gap: 8px; }
+            .hdr-title { font-size: 18px !important; }
+            main {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            aside {
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 6px !important;
+            }
+            aside .card:last-child { grid-column: 1 / -1; }
+            section {
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            #drug-container { overflow: visible !important; height: auto !important; }
+            .drug-row {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 6px !important;
+                padding: 10px !important;
+            }
+            /* Stack drug row into full-width vertical layout */
+            .drug-row > div { width: 100% !important; }
+            /* RX input full width on mobile */
+            .nav-input { font-size: 22px !important; height: 48px !important; width: 100% !important; }
+            .var-badge { width: 100% !important; min-height: 44px !important; }
+            /* Protocol bar */
+            #protocol-bar { flex-wrap: wrap !important; gap: 4px !important; }
+            #protocol-bar button { font-size: 10px !important; padding: 5px 8px !important; }
+        }
         
         /* Hide scrollbars on aside */
         aside::-webkit-scrollbar { display: none; }
@@ -1702,8 +1761,8 @@ function isMTX(name) { const n=(name||'').toLowerCase(); return n.includes('meth
     <section class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-top:3px solid #4f46e5;min-width:0;">
 
         <!-- Protocol Header -->
-        <div style="padding:12px 16px;border-bottom:1px solid #e8edf5;flex-shrink:0;background:rgba(248,250,252,0.6);">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div style="padding:10px 14px;border-bottom:1px solid #e8edf5;flex-shrink:0;background:rgba(248,250,252,0.6);">
+            <div id="protocol-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:6px;">
                 <div class="section-label" style="margin:0;flex-shrink:0;">
                     <span class="num">3</span> สูตรยา
                 </div>
@@ -2386,7 +2445,7 @@ function renderNonProtocolCards() {
                     <span style="font-size:10px;font-weight:800;color:#818cf8;">mg</span>
                 </div>
                 <div id="cap-note-${i}" style="display:none;"></div>
-                <div id="renal-warn-${i}" style="display:none;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:5;"><span class="chip chip-red" style="font-size:9px;">⚠ ปรับไต</span></div>
+                <div id="renal-warn-${i}" style="display:none;font-size:9px;font-weight:800;color:#dc2626;text-align:center;margin-top:2px;padding:1px 4px;background:#fef2f2;border-radius:4px;border:1px solid #fca5a5;">⚠ ปรับไต/ตับ</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:4px;">
                 <input type="text" id="diluent-${i}" class="inp" style="font-size:11px;padding:4px 8px;font-weight:600;" value="${drug.diluentText}" placeholder="สารละลาย">
@@ -2575,9 +2634,7 @@ function renderCards() {
                     <span style="font-size:11px;font-weight:800;color:#818cf8;">mg</span>
                 </div>
                 <div id="cap-note-${i}" style="display:none;"></div>
-                <div id="renal-warn-${i}" style="display:none;position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:5;">
-                    <span class="chip chip-red">⚠ ปรับตามค่าไต</span>
-                </div>
+                <div id="renal-warn-${i}" style="display:none;font-size:9px;font-weight:800;color:#dc2626;text-align:center;margin-top:2px;padding:1px 4px;background:#fef2f2;border-radius:4px;border:1px solid #fca5a5;">⚠ ปรับไต/ตับ</div>
             </div>
 
             <!-- Col 3: Route + Diluent + Vol + Conc -->
@@ -2761,10 +2818,16 @@ function updateSingleCard(i) {
     if (renalWarnEl) {
         if (needsRenal && (state.crcl === 0 || renalImpaired)) {
             renalWarnEl.style.display = '';
-            renalWarnEl.innerHTML = `<span class="chip chip-red">⚠ ตรวจสอบไต (CrCl ${state.crcl > 0 ? state.crcl.toFixed(0) : '?'})</span>`;
+            renalWarnEl.style.color = '#dc2626';
+            renalWarnEl.style.background = '#fef2f2';
+            renalWarnEl.style.borderColor = '#fca5a5';
+            renalWarnEl.textContent = `⚠ ไต (CrCl ${state.crcl > 0 ? state.crcl.toFixed(0) : '?'})`;
         } else if (needsLiver && liverImpaired) {
             renalWarnEl.style.display = '';
-            renalWarnEl.innerHTML = `<span class="chip chip-amber">⚠ ตรวจสอบตับ</span>`;
+            renalWarnEl.style.color = '#92400e';
+            renalWarnEl.style.background = '#fffbeb';
+            renalWarnEl.style.borderColor = '#fcd34d';
+            renalWarnEl.textContent = '⚠ ตับ';
         } else {
             renalWarnEl.style.display = 'none';
         }
