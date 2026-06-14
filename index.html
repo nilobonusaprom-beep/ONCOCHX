@@ -2436,7 +2436,7 @@ function renderNonProtocolCards() {
                     <span style="font-size:10px;font-weight:800;color:#64748b;">Target:</span>
                     <input type="number" id="target-${i}" step="0.1" class="inp" style="width:54px;font-size:12px;padding:2px 4px;text-align:center;font-weight:800;color:#4f46e5;" value="${drug.target}">
                     <select id="basis-${i}" class="inp" style="width:62px;font-size:11px;padding:2px 3px;font-weight:800;">${basisOpts}</select>
-                    <select id="dred-${i}" class="inp dose-red-btn full" style="width:70px;font-size:10px;padding:2px 3px;font-weight:800;" onchange="updateSingleCard(${i})"><option value="100">ปกติ</option><option value="90">ลด 10%</option><option value="85">ลด 15%</option><option value="80">ลด 20%</option><option value="75">ลด 25%</option></select>
+                    <select id="dred-${i}" class="inp dose-red-btn full" style="width:78px;font-size:10px;padding:2px 3px;font-weight:800;" onchange="handleDredChange(${i},this.value)"><option value="100">ปกติ</option><option value="90">ลด 10%</option><option value="85">ลด 15%</option><option value="80">ลด 20%</option><option value="75">ลด 25%</option><option value="50">ลด 50%</option></select>
                 </div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f5f3ff;border-radius:8px;border:1.5px solid #e0e7ff;padding:6px 4px;position:relative;min-height:52px;">
@@ -2617,12 +2617,13 @@ function renderCards() {
                     <select id="basis-${i}" class="inp" style="width:66px;font-size:12px;padding:3px 5px;font-weight:800;">${basisOpts}</select>
                     <select id="dred-${i}" class="inp dose-red-btn inactive"
                         style="width:76px;font-size:11px;padding:2px 4px;font-weight:800;" title="ลด Dose (%)"
-                        onchange="updateSingleCard(${i})">
+                        onchange="handleDredChange(\${i},this.value)">
                         <option value="100">ปกติ</option>
                         <option value="90">ลด 10%</option>
                         <option value="85">ลด 15%</option>
                         <option value="80">ลด 20%</option>
                         <option value="75">ลด 25%</option>
+                        <option value="50">ลด 50%</option>
                     </select>
                 </div>
             </div>
@@ -2696,15 +2697,16 @@ function renderCards() {
                 </button>
                 <!-- Global dose reduction -->
                 <select id="global-dred" class="inp dose-red-btn inactive"
-                    onchange="applyGlobalDoseReduction(this.value)"
+                    onchange="applyGlobalDoseReduction(this.value === 'custom' ? 'custom' : this.value)"
                     style="font-size:11px;padding:6px 8px;font-weight:800;cursor:pointer;width:auto;"
                     title="ปรับขนาดยาทุกตัวพร้อมกัน">
-                    <option value="">⬇ ปรับขนาดยาทั้งสูตร</option>
-                    <option value="100">ปกติ (100%)</option>
+                    <option value="">⬇ ปรับทั้งสูตร</option>
+                    <option value="100">ปกติ</option>
                     <option value="90">ลด 10%</option>
                     <option value="85">ลด 15%</option>
                     <option value="80">ลด 20%</option>
                     <option value="75">ลด 25%</option>
+                    <option value="50">ลด 50%</option>
                 </select>
                 <button id="save-protocol-btn" onclick="openSaveProtocol()"
                     style="background:linear-gradient(135deg,#059669,#0891b2);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(5,150,105,0.3);">
@@ -2732,24 +2734,156 @@ function renderCards() {
 }
 
 
-function applyGlobalDoseReduction(val) {
-    if (!val) return;
-    const pct = parseFloat(val);
+function showDredModal({ title, subtitle, defaultVal, onConfirm, onCancel }) {
+    document.getElementById('dred-modal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'dred-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:300;background:rgba(15,23,42,0.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+        <div style="background:#fff;border-radius:16px;width:min(360px,88vw);box-shadow:0 24px 60px rgba(0,0,0,0.3);overflow:hidden;animation:slideUp 0.18s ease-out;">
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 18px 12px;position:relative;">
+                <div style="font-size:13px;font-weight:900;color:#fff;">💊 ${title}</div>
+                <div style="font-size:10px;color:#c4b5fd;margin-top:2px;">${subtitle}</div>
+            </div>
+            <!-- Body -->
+            <div style="padding:18px 18px 8px;display:flex;flex-direction:column;gap:10px;">
+                <!-- Preset buttons -->
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+                    ${[90,85,80,75,66,60,50,33].map(p => `
+                    <button onclick="document.getElementById('dred-pct-input').value=${p};document.getElementById('dred-pct-input').dispatchEvent(new Event('input'));"
+                        style="background:#f5f3ff;border:1.5px solid #c4b5fd;color:#4f46e5;border-radius:8px;padding:6px 2px;font-size:11px;font-weight:800;cursor:pointer;transition:all 0.1s;"
+                        onmouseover="this.style.background='#ede9fe'" onmouseout="this.style.background='#f5f3ff'">
+                        ${p}%
+                    </button>`).join('')}
+                </div>
+                <!-- Custom input -->
+                <div>
+                    <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;">หรือกรอก % เอง</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="flex:1;position:relative;">
+                            <input type="number" id="dred-pct-input" min="1" max="100" step="1"
+                                value="${defaultVal}"
+                                style="width:100%;border:2px solid #c4b5fd;border-radius:10px;padding:10px 40px 10px 14px;font-size:22px;font-weight:900;color:#4f46e5;font-family:ui-monospace,monospace;text-align:center;outline:none;transition:border-color 0.15s;"
+                                oninput="const v=parseFloat(this.value);const badge=document.getElementById('dred-result-badge');if(v>0&&v<=100){badge.textContent=(v===100?'ปกติ (100%)':v>75?'ลดเล็กน้อย':'ลดมาก')+' — ให้ยา '+v+'% ของขนาดปกติ';badge.style.color=v===100?'#15803d':v>=75?'#92400e':'#dc2626';this.style.borderColor='#818cf8';}else{badge.textContent='กรุณากรอก 1–100';badge.style.color='#dc2626';this.style.borderColor='#fca5a5';}"
+                                onfocus="this.select()"
+                                onkeydown="if(event.key==='Enter'){document.getElementById('dred-confirm-btn').click();}if(event.key==='Escape'){document.getElementById('dred-cancel-btn').click();}">
+                            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:800;color:#818cf8;">%</span>
+                        </div>
+                    </div>
+                    <div id="dred-result-badge" style="font-size:11px;font-weight:700;color:#4f46e5;margin-top:6px;min-height:18px;text-align:center;"></div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div style="padding:10px 18px 16px;display:flex;gap:8px;">
+                <button id="dred-cancel-btn"
+                    style="flex:1;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;"
+                    onclick="document.getElementById('dred-modal').remove(); ${onCancel ? 'dredModalCancel()' : ''}">
+                    ยกเลิก
+                </button>
+                <button id="dred-confirm-btn"
+                    style="flex:2;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,0.3);"
+                    onclick="dredModalConfirm()">
+                    ✅ ยืนยัน
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) { modal.remove(); onCancel?.(); } });
+    // Store callbacks
+    window._dredOnConfirm = onConfirm;
+    window._dredOnCancel = onCancel;
+    // Trigger initial badge update
+    const inp = document.getElementById('dred-pct-input');
+    if (inp) { inp.dispatchEvent(new Event('input')); setTimeout(() => inp.focus(), 50); }
+}
+function dredModalConfirm() {
+    const val = parseFloat(document.getElementById('dred-pct-input')?.value);
+    document.getElementById('dred-modal')?.remove();
+    if (!isNaN(val) && val > 0 && val <= 100) window._dredOnConfirm?.(val);
+    else window._dredOnCancel?.();
+}
+function dredModalCancel() { window._dredOnCancel?.(); }
+
+// Add slideUp animation
+if (!document.getElementById('dred-anim-style')) {
+    const s = document.createElement('style');
+    s.id = 'dred-anim-style';
+    s.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(s);
+}
+
+function handleDredChange(i, val) {
+    if (val === 'custom') {
+        const current = parseFloat(document.getElementById(`dred-${i}`)?.dataset?.customVal || '100');
+        showDredModal({
+            title: 'กำหนดขนาดยาเอง',
+            subtitle: 'เลือก preset หรือกรอก % ที่ต้องการ (1–100)',
+            defaultVal: current === 100 ? '' : current,
+            onConfirm: (pct) => {
+                const el = document.getElementById(`dred-${i}`);
+                if (!el) return;
+                let opt = el.querySelector(`option[value="${pct}"]`);
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = String(pct);
+                    el.insertBefore(opt, el.lastElementChild);
+                }
+                opt.textContent = `กำหนดเอง (${pct}%)`;
+                el.value = String(pct);
+                el.dataset.customVal = pct;
+                el.dataset.lastVal = String(pct);
+                updateSingleCard(i);
+            },
+            onCancel: () => {
+                const el = document.getElementById(`dred-${i}`);
+                if (el) el.value = el.dataset.lastVal || '100';
+            }
+        });
+        return;
+    }
+    const el = document.getElementById(`dred-${i}`);
+    if (el) el.dataset.lastVal = val;
+    updateSingleCard(i);
+}
+
+function applyGlobalDoseReduction(rawVal) {
+    if (!rawVal) return;
+    const val = rawVal.replace ? rawVal.replace("'custom'","custom") : rawVal;
+    if (val === 'custom') {
+        showDredModal({
+            title: 'ปรับขนาดยาทั้งสูตร',
+            subtitle: 'เลือก preset หรือกรอก % ที่ต้องการ — จะปรับทุกรายการยาพร้อมกัน',
+            defaultVal: '',
+            onConfirm: (pct) => { _applyGlobalPct(pct, `กำหนดเอง (${pct}%)`); },
+            onCancel: () => { const g = document.getElementById('global-dred'); if (g) g.value = ''; }
+        });
+        return;
+    }
+    _applyGlobalPct(parseFloat(val), null);
+}
+
+function _applyGlobalPct(pct, label) {
     currentProtocolArray.forEach((_, i) => {
         const el = document.getElementById(`dred-${i}`);
-        if (el) {
-            el.value = val;
-            updateSingleCard(i);
+        if (!el) return;
+        // Find/add matching option
+        let found = [...el.options].find(o => parseFloat(o.value) === pct);
+        if (!found) {
+            const opt = document.createElement('option');
+            opt.value = String(pct);
+            opt.textContent = label || `${pct}%`;
+            el.appendChild(opt);
+            found = opt;
         }
+        el.value = String(pct);
+        el.dataset.lastVal = String(pct);
+        updateSingleCard(i);
     });
-    // Reset global selector display
     const gsel = document.getElementById('global-dred');
     if (gsel) {
-        const label = pct === 100 ? 'ปกติ (100%)' : `ลด ${100-pct}% ทุกตัว`;
         gsel.className = pct === 100 ? 'inp dose-red-btn full' : 'inp dose-red-btn active';
-        setTimeout(() => {
-            if (gsel) { gsel.value = ''; }
-        }, 800);
+        setTimeout(() => { if (gsel) gsel.value = ''; }, 600);
     }
 }
 
@@ -2778,7 +2912,8 @@ function updateSingleCard(i) {
     const basis  = basisEl.value;
     const rx     = parseFloat(rxEl.value);
     const vol    = volEl?.value === 'custom' ? NaN : parseFloat(volEl?.value);
-    const dredPct = dredEl ? (parseFloat(dredEl.value) || 100) : 100;
+    const dredRaw = dredEl ? dredEl.value : '100';
+    const dredPct = (dredRaw === 'custom' || !dredRaw) ? 100 : (parseFloat(dredRaw) || 100);
 
     // Style dose reduction selector
     if (dredEl) {
