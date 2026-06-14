@@ -550,6 +550,57 @@
 </head>
 <body>
 
+<!-- ═══ LOGIN SCREEN ════════════════════════════════════ -->
+<div id="login-screen" style="position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0c1a2e 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(99,102,241,0.15) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(6,182,212,0.1) 0%,transparent 60%);pointer-events:none;"></div>
+    <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(99,102,241,0.12) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;"></div>
+    <div style="position:relative;z-index:1;width:min(380px,90vw);display:flex;flex-direction:column;align-items:center;gap:22px;">
+        <!-- Logo -->
+        <div style="text-align:center;">
+            <div style="font-size:30px;font-weight:900;letter-spacing:-0.03em;background:linear-gradient(135deg,#c7d2fe,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">OncoChex</div>
+            <div style="font-size:10px;font-weight:700;color:#818cf8;letter-spacing:0.15em;text-transform:uppercase;margin-top:3px;">Chemotherapy Order Verification</div>
+            <div style="font-size:9px;color:#475569;margin-top:2px;letter-spacing:0.08em;text-transform:uppercase;">by NILOTINIB</div>
+        </div>
+        <!-- Card -->
+        <div style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:26px 26px 22px;backdrop-filter:blur(20px);box-shadow:0 24px 60px rgba(0,0,0,0.4);">
+            <div style="font-size:15px;font-weight:800;color:#e2e8f0;margin-bottom:18px;text-align:center;">เข้าสู่ระบบ</div>
+            <div style="display:flex;flex-direction:column;gap:13px;">
+                <div>
+                    <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:5px;">ชื่อผู้ใช้งาน</label>
+                    <input type="text" id="login-user" autocomplete="username" autocapitalize="none"
+                        style="width:100%;background:rgba(15,20,40,0.7);border:1.5px solid rgba(99,102,241,0.3);border-radius:10px;padding:10px 13px;font-size:15px;font-weight:700;color:#e2e8f0;font-family:ui-monospace,monospace;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+                        placeholder="Username"
+                        onfocus="this.style.borderColor='#818cf8'" onblur="this.style.borderColor='rgba(99,102,241,0.3)'"
+                        onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+                </div>
+                <div>
+                    <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:5px;">รหัสผ่าน</label>
+                    <div style="position:relative;">
+                        <input type="password" id="login-pass" autocomplete="current-password"
+                            style="width:100%;background:rgba(15,20,40,0.7);border:1.5px solid rgba(99,102,241,0.3);border-radius:10px;padding:10px 40px 10px 13px;font-size:15px;font-weight:700;color:#e2e8f0;font-family:ui-monospace,monospace;outline:none;transition:border-color 0.2s;box-sizing:border-box;"
+                            placeholder="Password"
+                            onfocus="this.style.borderColor='#818cf8'" onblur="this.style.borderColor='rgba(99,102,241,0.3)'"
+                            onkeydown="if(event.key==='Enter')doLogin()">
+                        <button onclick="const p=document.getElementById('login-pass');p.type=p.type==='password'?'text':'password';" tabindex="-1"
+                            style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#64748b;padding:4px;font-size:15px;line-height:1;">👁</button>
+                    </div>
+                </div>
+                <div id="login-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;color:#fca5a5;text-align:center;"></div>
+                <button onclick="doLogin()"
+                    style="width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 16px rgba(79,70,229,0.4);letter-spacing:0.02em;margin-top:2px;"
+                    onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+                    เข้าสู่ระบบ →
+                </button>
+            </div>
+        </div>
+        <div style="text-align:center;font-size:9px;color:#334155;line-height:1.6;">
+            © 2026 NILOBON USAPROM · Developed by NILOTINIB<br>All rights reserved.
+        </div>
+    </div>
+</div>
+
+<!-- user-badge moved into header -->
+
 <!-- ═══ SAVE PROTOCOL MODAL ══════════════════════════ -->
 <div id="save-proto-modal" style="display:none;position:fixed;inset:0;z-index:110;background:rgba(10,15,30,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;width:min(480px,92vw);box-shadow:0 24px 60px rgba(0,0,0,0.4);overflow:hidden;">
@@ -737,6 +788,7 @@ function getAPIKey() {
 }
 
 function openOCR() {
+    if (!confirmLeaveOrder()) return;
     document.getElementById('ocr-modal').style.display = 'flex';
     const saved = localStorage.getItem('onco_apikey');
     if (saved) {
@@ -1482,8 +1534,20 @@ function isMTX(name) { const n=(name||'').toLowerCase(); return n.includes('meth
         </svg>
     </div>
 
-    <!-- RIGHT: Clock + Reset -->
-    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;position:relative;z-index:4;">
+    <!-- RIGHT: User badge + Clock + Reset -->
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative;z-index:4;">
+        <!-- User badge inline -->
+        <div id="user-badge" style="display:none;align-items:center;gap:7px;background:rgba(255,255,255,0.06);border:1px solid rgba(129,140,248,0.25);border-radius:20px;padding:4px 10px 4px 5px;">
+            <div id="user-avatar" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;"></div>
+            <div style="min-width:0;">
+                <div id="user-display-name" style="font-size:10px;font-weight:800;color:#e2e8f0;white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;"></div>
+                <div id="user-role-badge" style="font-size:8px;font-weight:700;color:#818cf8;"></div>
+            </div>
+            <button onclick="doLogout()" title="ออกจากระบบ"
+                style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#fca5a5;border-radius:6px;padding:2px 6px;font-size:9px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                ออก
+            </button>
+        </div>
         <div style="text-align:right;">
             <div style="font-size:9px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.1em;" id="hdr-date">--</div>
             <div style="font-size:15px;font-weight:900;color:#e2e8f0;font-family:ui-monospace,monospace;letter-spacing:0.06em;margin-top:1px;display:flex;align-items:center;gap:6px;">
@@ -2122,13 +2186,25 @@ function initCustomProtocol() {
 }
 
 // ─── Reset ────────────────────────────────────────
+
+// ── Order dirty guard ─────────────────────────────────────────────────
+function confirmLeaveOrder() {
+    if (!window._orderDirty) return true;
+    return confirm('⚠️ ใบสั่งยานี้ยังไม่ได้กดยืนยันการตรวจสอบ\n\nต้องการออกโดยไม่ยืนยันใช่ไหม?');
+}
+
 function resetApp() {
+    if (!confirmLeaveOrder()) return;
     ['wt','ht','age','scr','wbc','neut','hb','plt','anc','hct','ast','alt','alp','bili'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
     document.getElementById('sex').value = 'M';
     const cov = document.getElementById('coverage'); if (cov) cov.value = '';
     hideCoverageAlerts();
+    // Clear protocol select
+    const ps = document.getElementById('protocol-select'); if (ps) ps.value = '';
+    window._verifyStartTime = null;
+    window._orderDirty = false;
     document.getElementById('drug-container').innerHTML = `
         <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;gap:12px;">
             <div style="width:56px;height:56px;border-radius:50%;background:#f8fafc;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;">
@@ -2712,10 +2788,18 @@ function renderCards() {
                     style="background:linear-gradient(135deg,#059669,#0891b2);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(5,150,105,0.3);">
                     💾 บันทึกสูตรนี้
                 </button>
+                <button onclick="openErrorModal()"
+                    style="background:linear-gradient(135deg,#dc2626,#9333ea);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(220,38,38,0.35);">
+                    🚨 พบ Error / ต้อง Consult
+                </button>
+                <button onclick="openVerifyModal()"
+                    style="background:linear-gradient(135deg,#0f766e,#0369a1);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(15,118,110,0.35);">
+                    ✅ ยืนยันการตรวจสอบ
+                </button>
             </div>
-            <button id="reset-btn-bottom" onclick="resetApp()" class="btn btn-rose">
-                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                เริ่มใหม่ (Reset All)
+            <button id="reset-btn-bottom" onclick="resetApp()" class="btn btn-rose" style="padding:7px 12px;font-size:11px;font-weight:800;flex-shrink:0;">
+                <svg style="width:13px;height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                เริ่มใหม่
             </button>
         </div>
     `;
@@ -3179,7 +3263,75 @@ function printSummary() {
     win.document.close();
 }
 
-// ── Drag & Drop + Ctrl+V on drug-container → open OCR ──────────────
+// ═══ AUTH SYSTEM ═════════════════════════════════════════════════════
+const USERS = [
+    { username:'05',  password:'3339', displayName:'ภญ.นิโลบล อุสาพรหม',     role:'admin',       initials:'นิ' },
+    { username:'JK',  password:'1234', displayName:'ภญ.จุไรรัตน์ กุจนา',     role:'pharmacist',  initials:'จุ' },
+    { username:'PP',  password:'1234', displayName:'ภญ.พนิดา พงษ์พิศ',       role:'pharmacist',  initials:'พน' },
+    { username:'TJ',  password:'1234', displayName:'ภญ.ธนาภรณ์ จันทรังษี',   role:'pharmacist',  initials:'ธน' },
+    { username:'RK',  password:'1234', displayName:'ภก.ระวรรณวัฒน์ เครืออ่อน', role:'pharmacist', initials:'รว' },
+];
+const ROLE_LABEL = { admin:'Admin · Pharmacist', pharmacist:'Pharmacist' };
+let currentUser = null;
+
+function doLogin() {
+    const uEl = document.getElementById('login-user');
+    const pEl = document.getElementById('login-pass');
+    const errEl = document.getElementById('login-error');
+    const u = (uEl?.value || '').trim();
+    const p = (pEl?.value || '').trim();
+
+    const found = USERS.find(x => x.username === u && x.password === p);
+    if (!found) {
+        errEl.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+        errEl.style.display = '';
+        pEl.value = '';
+        pEl.focus();
+        // Shake animation
+        const card = errEl.closest('div[style*="border-radius:20px"]');
+        if (card) { card.style.animation='shake 0.35s ease'; setTimeout(()=>{card.style.animation='';},400); }
+        return;
+    }
+
+    currentUser = found;
+    errEl.style.display = 'none';
+
+    // Hide login, show app
+    document.getElementById('login-screen').style.display = 'none';
+
+    // Show user badge
+    const badge = document.getElementById('user-badge');
+    badge.style.display = 'flex';
+    document.getElementById('user-avatar').textContent = found.initials;
+    document.getElementById('user-display-name').textContent = found.displayName;
+    document.getElementById('user-role-badge').textContent = ROLE_LABEL[found.role] || found.role;
+
+    // Show verified-by in header if present
+    const vbyEl = document.getElementById('hdr-verified-by');
+    if (vbyEl) vbyEl.textContent = found.displayName;
+}
+
+function doLogout() {
+    if (!confirm('ต้องการออกจากระบบใช่ไหม?')) return;
+    currentUser = null;
+    document.getElementById('user-badge').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-user').focus();
+}
+
+// Shake animation CSS
+(function(){
+    const s = document.createElement('style');
+    s.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}';
+    document.head.appendChild(s);
+})();
+
+// Auto-focus username on load
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => document.getElementById('login-user')?.focus(), 100);
+});
 (function initDropZone() {
     function setup() {
         const dc = document.getElementById('drug-container');
@@ -3334,6 +3486,543 @@ function hideCoverageAlerts() {
     const el = document.getElementById('coverage-alert-box');
     if (el) el.innerHTML = '';
 }
+
+// ─── Error / Consult Interception System ─────────────────────────────
+const ERROR_TYPES = [
+    { id:'dose_wrong',   label:'ขนาดยาไม่ถูกต้อง',          severity:'CRITICAL', icon:'💊' },
+    { id:'drug_wrong',   label:'รายการยาไม่ถูกต้อง',         severity:'CRITICAL', icon:'⚠️' },
+    { id:'diluent_wrong',label:'สารน้ำ/วิธีให้ยาไม่ถูกต้อง', severity:'HIGH',     icon:'🧪' },
+    { id:'protocol_wrong',label:'สูตรยาไม่ถูกต้อง',          severity:'CRITICAL', icon:'🧬' },
+    { id:'duplicate',    label:'Order ซ้ำ',                  severity:'HIGH',     icon:'🔁' },
+    { id:'coverage',     label:'ยานอกสิทธิ / ไม่ได้รับอนุมัติ', severity:'HIGH', icon:'📋' },
+    { id:'renal',        label:'ไม่ได้ปรับขนาดตามการทำงานของไต', severity:'HIGH', icon:'🫘' },
+    { id:'liver',        label:'ไม่ได้ปรับขนาดตามการทำงานของตับ', severity:'HIGH', icon:'🟫' },
+    { id:'interaction',  label:'Drug interaction',           severity:'HIGH',     icon:'⚡' },
+    { id:'missing_drug', label:'ขาดรายการยาสำคัญ (เช่น Mesna)',  severity:'HIGH', icon:'❓' },
+    { id:'other',        label:'อื่นๆ (ระบุใน Note)',         severity:'NEEDS_REVIEW', icon:'📝' },
+];
+
+const SEV_COLOR = {
+    CRITICAL:     { bg:'#fef2f2', border:'#fca5a5', text:'#dc2626', badge:'#fee2e2' },
+    HIGH:         { bg:'#fffbeb', border:'#fcd34d', text:'#92400e', badge:'#fef3c7' },
+    NEEDS_REVIEW: { bg:'#f5f3ff', border:'#c4b5fd', text:'#6d28d9', badge:'#ede9fe' },
+};
+
+function openErrorModal() {
+    if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+    document.getElementById('error-modal')?.remove();
+    const protocol = document.getElementById('protocol-select')?.value || '—';
+    const now = new Date();
+
+    const checkboxes = ERROR_TYPES.map(e => {
+        const s = SEV_COLOR[e.severity];
+        return `<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;border:1.5px solid ${s.border};background:${s.bg};cursor:pointer;transition:opacity 0.1s;"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <input type="checkbox" value="${e.id}" data-severity="${e.severity}" data-label="${e.label}"
+                style="margin-top:2px;width:15px;height:15px;accent-color:${s.text};flex-shrink:0;">
+            <div>
+                <div style="font-size:12px;font-weight:800;color:${s.text};">${e.icon} ${e.label}</div>
+                <div style="font-size:9px;font-weight:700;color:${s.text};opacity:0.7;margin-top:1px;">${e.severity}</div>
+            </div>
+        </label>`;
+    }).join('');
+
+    const m = document.createElement('div');
+    m.id = 'error-modal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;';
+    m.innerHTML = `
+        <div style="background:#fff;border-radius:18px;width:min(540px,94vw);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,0.4);overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#dc2626,#9333ea);padding:14px 20px;flex-shrink:0;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">🚨</span>
+                <div style="flex:1;">
+                    <div style="font-size:14px;font-weight:900;color:#fff;">บันทึก Error / ต้อง Consult แพทย์</div>
+                    <div style="font-size:10px;color:#fecaca;margin-top:1px;">${protocol} · ${currentUser.displayName} · ${now.toLocaleString('th-TH')}</div>
+                </div>
+                <button onclick="document.getElementById('error-modal').remove()"
+                    style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>
+            <div style="overflow-y:auto;flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:10px;">
+                <!-- Error type -->
+                <div>
+                    <div style="font-size:11px;font-weight:800;color:#334155;margin-bottom:8px;">ประเภท Error ที่พบ <span style="color:#dc2626;">*</span> (เลือกได้มากกว่า 1)</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="error-checkbox-grid">
+                        ${checkboxes}
+                    </div>
+                </div>
+                <!-- Rx ที่พบ vs ถูกต้อง -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div>
+                        <label style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;display:block;margin-bottom:4px;">Rx ที่พบ (ผิด)</label>
+                        <input type="text" id="err-rx-found" class="inp" style="font-size:12px;padding:7px 10px;border-color:#fca5a5;" placeholder="เช่น Carboplatin 500 mg">
+                    </div>
+                    <div>
+                        <label style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;display:block;margin-bottom:4px;">ค่าที่ถูกต้อง</label>
+                        <input type="text" id="err-rx-correct" class="inp" style="font-size:12px;padding:7px 10px;border-color:#86efac;" placeholder="เช่น Carboplatin 450 mg">
+                    </div>
+                </div>
+                <!-- Action taken -->
+                <div>
+                    <label style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;display:block;margin-bottom:4px;">การดำเนินการ</label>
+                    <select id="err-action" class="inp" style="font-size:12px;padding:7px 10px;">
+                        <option value="consult">แจ้งแพทย์เพื่อ Consult</option>
+                        <option value="corrected">แก้ไข Order แล้ว (ได้รับอนุมัติแพทย์)</option>
+                        <option value="hold">พักใบสั่งยา รอข้อมูลเพิ่มเติม</option>
+                        <option value="reject">ปฏิเสธการจ่ายยา</option>
+                        <option value="other">อื่นๆ (ระบุใน Note)</option>
+                    </select>
+                </div>
+                <!-- Note -->
+                <div>
+                    <label style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;display:block;margin-bottom:4px;">บันทึกเพิ่มเติม</label>
+                    <textarea id="err-note" rows="2" class="inp" style="font-size:12px;padding:8px 10px;resize:vertical;"
+                        placeholder="รายละเอียด เช่น ติดต่อ นพ.สมชาย เวลา 14:30 น. แก้ไขแล้ว..."></textarea>
+                </div>
+                <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:10px 12px;font-size:11px;color:#991b1b;font-weight:600;">
+                    🔐 ข้อมูลนี้จะถูกบันทึกเพื่อใช้เป็นผลงานการดักจับ Error และรายงานคุณภาพ
+                </div>
+            </div>
+            <div style="padding:12px 20px;border-top:1px solid #e8edf5;display:flex;gap:8px;flex-shrink:0;">
+                <button onclick="document.getElementById('error-modal').remove()"
+                    style="flex:1;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">ยกเลิก</button>
+                <button onclick="confirmError()"
+                    style="flex:2;background:linear-gradient(135deg,#dc2626,#9333ea);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(220,38,38,0.3);">
+                    🚨 บันทึก Error
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if(e.target===m) m.remove(); });
+}
+
+function confirmError() {
+    if (!currentUser) return;
+    const checked = [...document.querySelectorAll('#error-checkbox-grid input[type=checkbox]:checked')];
+    if (!checked.length) { alert('กรุณาเลือกประเภท Error อย่างน้อย 1 ข้อ'); return; }
+
+    const errorTypes = checked.map(c => ({ id:c.value, label:c.dataset.label, severity:c.dataset.severity }));
+    const hasCritical = errorTypes.some(e => e.severity === 'CRITICAL');
+    const now = new Date();
+    const protocol = document.getElementById('protocol-select')?.value || '—';
+    const wt = document.getElementById('wt')?.value || '';
+    const bsa = document.getElementById('out-bsa')?.innerText || '';
+    const crcl = document.getElementById('out-crcl')?.innerText || '';
+    const coverage = document.getElementById('coverage')?.value || '';
+
+    const entry = {
+        id: Date.now(),
+        type: 'error',
+        verifiedBy: currentUser.displayName,
+        username: currentUser.username,
+        role: currentUser.role,
+        verifiedAt: now.toISOString(),
+        verifiedAtDisplay: now.toLocaleString('th-TH'),
+        protocol,
+        drugs: currentProtocolArray.map((d,i) => ({
+            name: document.getElementById(`name-${i}`)?.value || d.name || '',
+            rx: parseFloat(document.getElementById(`rx-${i}`)?.value) || null,
+            calc: parseFloat(document.getElementById(`rec-${i}`)?.textContent) || null,
+        })),
+        drugNames: currentProtocolArray.map((d,i) =>
+            document.getElementById(`name-${i}`)?.value || d.name || ''
+        ).filter(Boolean),
+        patient: { wt, bsa, crcl, coverage },
+        errorTypes,
+        hasCritical,
+        rxFound:   document.getElementById('err-rx-found')?.value.trim() || '',
+        rxCorrect: document.getElementById('err-rx-correct')?.value.trim() || '',
+        action:    document.getElementById('err-action')?.value || '',
+        note:      document.getElementById('err-note')?.value.trim() || '',
+        durationMs: window._verifyStartTime ? (now - window._verifyStartTime) : null,
+    };
+
+    VERIFICATION_LOG.push(entry);
+    saveVerifLog();
+    // Error does NOT clear dirty — must still verify after
+    document.getElementById('error-modal')?.remove();
+
+    // Toast
+    const toast = document.createElement('div');
+    const sevColor = hasCritical ? '#dc2626' : '#92400e';
+    toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:${sevColor};color:#fff;border-radius:12px;padding:12px 24px;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;max-width:90vw;text-align:center;`;
+    toast.textContent = `🚨 บันทึก Error แล้ว — ${errorTypes.map(e=>e.label).join(', ')}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// ─── Verification & Report system ────────────────────────────────────
+const VERIFICATION_LOG = JSON.parse(localStorage.getItem('onco_verif_log') || '[]');
+
+function saveVerifLog() { localStorage.setItem('onco_verif_log', JSON.stringify(VERIFICATION_LOG)); }
+
+function openVerifyModal() {
+    if (!currentUser) { alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+    document.getElementById('verify-modal')?.remove();
+
+    const protocol = document.getElementById('protocol-select')?.value || '—';
+    const drugs = currentProtocolArray.map((d,i) => {
+        const nm = document.getElementById(`name-${i}`)?.value || d.name || '';
+        const rx = document.getElementById(`rx-${i}`)?.value || '';
+        const calc = document.getElementById(`rec-${i}`)?.textContent || '';
+        const dil = document.getElementById(`diltype-${i}`)?.value || '';
+        return `${nm}: Rx=${rx} mg (calc=${calc} mg) | ${dil}`;
+    }).join('\n');
+    const coverage = document.getElementById('coverage')?.value || '';
+    const bsa = document.getElementById('out-bsa')?.innerText || '—';
+    const crcl = document.getElementById('out-crcl')?.innerText || '—';
+    const wt = document.getElementById('wt')?.value || '—';
+    const now = new Date();
+
+    const m = document.createElement('div');
+    m.id = 'verify-modal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;';
+    m.innerHTML = `
+        <div style="background:#fff;border-radius:18px;width:min(520px,94vw);box-shadow:0 32px 80px rgba(0,0,0,0.4);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;">
+            <div style="background:linear-gradient(135deg,#0f766e,#0369a1);padding:14px 20px;flex-shrink:0;">
+                <div style="font-size:15px;font-weight:900;color:#fff;">✅ ยืนยันการตรวจสอบ Chemotherapy Order</div>
+                <div style="font-size:10px;color:#a7f3d0;margin-top:2px;">โดย ${currentUser.displayName} · ${now.toLocaleString('th-TH')}</div>
+            </div>
+            <div style="overflow-y:auto;flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:12px;">
+                <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;">
+                    <div style="font-size:11px;font-weight:800;color:#15803d;margin-bottom:6px;">📋 สรุปข้อมูลการตรวจสอบ</div>
+                    <div style="font-size:12px;color:#334155;line-height:1.8;">
+                        <b>สูตรยา:</b> ${protocol}<br>
+                        <b>BSA:</b> ${bsa} m² &nbsp;|&nbsp; <b>CrCl:</b> ${crcl} mL/min &nbsp;|&nbsp; <b>Wt:</b> ${wt} kg<br>
+                        <b>สิทธิ:</b> ${coverage || '—'}<br>
+                        <b>รายการยา:</b><br>
+                        <div style="font-family:ui-monospace,monospace;font-size:11px;background:#f8fafc;border-radius:6px;padding:6px 8px;margin-top:4px;white-space:pre-wrap;">${drugs}</div>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:800;color:#334155;display:block;margin-bottom:5px;">บันทึกเพิ่มเติม / ประเด็นที่พบ (ถ้ามี)</label>
+                    <textarea id="verify-note" rows="3" placeholder="เช่น ปรับขนาดยาเนื่องจาก CrCl ต่ำ, แจ้งพยาบาลแล้ว..."
+                        style="width:100%;border:1.5px solid #dde3ef;border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
+                </div>
+                <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:11px;color:#92400e;font-weight:600;">
+                    ⚠️ การยืนยันนี้หมายความว่าเภสัชกรได้ตรวจสอบรายการยา ขนาดยา และสารน้ำเรียบร้อยแล้ว
+                </div>
+            </div>
+            <div style="padding:12px 20px;border-top:1px solid #e8edf5;display:flex;gap:8px;flex-shrink:0;">
+                <button onclick="document.getElementById('verify-modal').remove()"
+                    style="flex:1;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">ยกเลิก</button>
+                <button onclick="confirmVerification()"
+                    style="flex:2;background:linear-gradient(135deg,#0f766e,#0369a1);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(15,118,110,0.3);">
+                    ✅ ยืนยันการตรวจสอบ
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if(e.target===m) m.remove(); });
+    document.getElementById('verify-note').focus();
+}
+
+function confirmVerification() {
+    if (!currentUser) return;
+    const note = document.getElementById('verify-note')?.value.trim() || '';
+    const now = new Date();
+    const protocol = document.getElementById('protocol-select')?.value || '—';
+    const wt = document.getElementById('wt')?.value || '';
+    const ht = document.getElementById('ht')?.value || '';
+    const scr = document.getElementById('scr')?.value || '';
+    const bsa = document.getElementById('out-bsa')?.innerText || '';
+    const crcl = document.getElementById('out-crcl')?.innerText || '';
+    const coverage = document.getElementById('coverage')?.value || '';
+
+    const drugs = currentProtocolArray.map((d,i) => ({
+        name: document.getElementById(`name-${i}`)?.value || d.name || '',
+        rx:   parseFloat(document.getElementById(`rx-${i}`)?.value) || null,
+        calc: parseFloat(document.getElementById(`rec-${i}`)?.textContent) || null,
+        target: parseFloat(document.getElementById(`target-${i}`)?.value) || d.target,
+        basis: document.getElementById(`basis-${i}`)?.value || d.basis,
+        diluent: document.getElementById(`diltype-${i}`)?.value || '',
+        rate: document.getElementById(`diluent-${i}`)?.value || '',
+        vol: document.getElementById(`vol-${i}`)?.value || '',
+        day: document.getElementById(`day-${i}`)?.value || '',
+        dred: document.getElementById(`dred-${i}`)?.value || '100',
+    }));
+
+    const entry = {
+        id: Date.now(),
+        verifiedBy: currentUser.displayName,
+        username: currentUser.username,
+        role: currentUser.role,
+        verifiedAt: now.toISOString(),
+        verifiedAtDisplay: now.toLocaleString('th-TH'),
+        protocol,
+        drugs,
+        patient: { wt, ht, scr, bsa, crcl, coverage },
+        note,
+        durationMs: window._verifyStartTime ? (now - window._verifyStartTime) : null,
+    };
+
+    VERIFICATION_LOG.push(entry);
+    saveVerifLog();
+    window._orderDirty = false;
+
+    document.getElementById('verify-modal')?.remove();
+
+    // Show success toast
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:500;background:linear-gradient(135deg,#0f766e,#0369a1);color:#fff;border-radius:12px;padding:12px 24px;font-size:13px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;';
+    toast.textContent = `✅ ยืนยันแล้ว — ${currentUser.displayName} · ${now.toLocaleTimeString('th-TH')}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+// Track when protocol is loaded (start timer)
+const _origProtocolInput = document.getElementById('protocol-select');
+if (_origProtocolInput) {
+    _origProtocolInput.addEventListener('input', () => { window._verifyStartTime = new Date(); window._orderDirty = true; });
+}
+
+// ─── REPORT SYSTEM ────────────────────────────────────────────────────
+function openReportModal() {
+    document.getElementById('report-modal')?.remove();
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0,10);
+    const monthAgo = new Date(now - 30*86400000).toISOString().slice(0,10);
+
+    const m = document.createElement('div');
+    m.id = 'report-modal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:400;background:rgba(15,23,42,0.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;';
+    m.innerHTML = `
+        <div style="background:#fff;border-radius:18px;width:min(700px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,0.4);overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 20px;flex-shrink:0;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:18px;">📊</span>
+                <div style="flex:1;">
+                    <div style="font-size:14px;font-weight:900;color:#fff;">รายงานการตรวจสอบใบสั่งยา</div>
+                    <div style="font-size:10px;color:#c4b5fd;">OncoChex · Developed by NILOTINIB</div>
+                </div>
+                <button onclick="document.getElementById('report-modal').remove()"
+                    style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">✕</button>
+            </div>
+            <!-- Date filter -->
+            <div style="padding:12px 20px;border-bottom:1px solid #e8edf5;background:#f8fafc;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span style="font-size:11px;font-weight:700;color:#64748b;">ช่วงวันที่:</span>
+                <input type="date" id="rpt-from" value="${monthAgo}" class="inp" style="font-size:12px;padding:5px 8px;width:auto;">
+                <span style="font-size:11px;color:#94a3b8;">ถึง</span>
+                <input type="date" id="rpt-to" value="${todayStr}" class="inp" style="font-size:12px;padding:5px 8px;width:auto;">
+                <button onclick="renderReport()" style="background:#4f46e5;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:800;cursor:pointer;">แสดงผล</button>
+                <button onclick="exportReportCSV()" style="background:#059669;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:800;cursor:pointer;">⬇ Export CSV</button>
+            </div>
+            <!-- Report body -->
+            <div id="report-body" style="overflow-y:auto;flex:1;padding:16px 20px;"></div>
+        </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if(e.target===m) m.remove(); });
+    renderReport();
+}
+
+function getFilteredLog() {
+    const from = document.getElementById('rpt-from')?.value;
+    const to = document.getElementById('rpt-to')?.value;
+    return VERIFICATION_LOG.filter(e => {
+        const d = e.verifiedAt.slice(0,10);
+        return (!from || d >= from) && (!to || d <= to);
+    });
+}
+
+function renderReport() {
+    const log = getFilteredLog();
+    const el = document.getElementById('report-body');
+    if (!el) return;
+    if (!log.length) {
+        el.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:40px;font-size:13px;">ไม่พบข้อมูลในช่วงวันที่ที่เลือก</div>';
+        return;
+    }
+
+    // Separate verified vs error entries
+    const verifiedLog = log.filter(e => !e.type || e.type !== 'error');
+    const errorLog    = log.filter(e => e.type === 'error');
+    const criticalCount = errorLog.filter(e => e.hasCritical).length;
+
+    // Summary stats
+    const byPharm = {};
+    const byProto = {};
+    const byErrPharm = {};
+    const byErrType  = {};
+    const byErrDrug  = {}; // drug-level error ranking
+    let totalDurMs = 0, durCount = 0;
+
+    verifiedLog.forEach(e => {
+        byPharm[e.verifiedBy] = (byPharm[e.verifiedBy]||0)+1;
+        byProto[e.protocol]   = (byProto[e.protocol]||0)+1;
+        if (e.durationMs) { totalDurMs += e.durationMs; durCount++; }
+    });
+    errorLog.forEach(e => {
+        byErrPharm[e.verifiedBy] = (byErrPharm[e.verifiedBy]||0)+1;
+        (e.errorTypes||[]).forEach(t => {
+            byErrType[t.label] = (byErrType[t.label]||0)+1;
+        });
+        // Count drug errors from rxFound field ONLY (what pharmacist explicitly flagged)
+        const rxFoundDrug = e.rxFound?.trim();
+        if (rxFoundDrug) {
+            byErrDrug[rxFoundDrug] = (byErrDrug[rxFoundDrug]||0) + 1;
+        }
+        if (e.durationMs) { totalDurMs += e.durationMs; durCount++; }
+    });
+
+    const avgDur = durCount ? Math.round(totalDurMs/durCount/60000) : null;
+    const totalOrders = verifiedLog.length + errorLog.length;
+    const errorRate = totalOrders ? ((errorLog.length/totalOrders)*100).toFixed(1) : 0;
+
+    const statBox = (icon, label, val, color='#4f46e5') =>
+        `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;text-align:center;">
+            <div style="font-size:20px;">${icon}</div>
+            <div style="font-size:22px;font-weight:900;color:${color};margin:4px 0;">${val}</div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;">${label}</div>
+        </div>`;
+
+    const pharmRows = Object.entries(byPharm).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+        `<tr><td style="padding:5px 8px;">${k}</td>
+         <td style="padding:5px 8px;font-weight:800;color:#4f46e5;text-align:center;">${v}</td>
+         <td style="padding:5px 8px;font-weight:800;color:#dc2626;text-align:center;">${byErrPharm[k]||0}</td>
+         </tr>`).join('');
+
+    const protoRows = Object.entries(byProto).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+        `<tr><td style="padding:5px 8px;">${k}</td><td style="padding:5px 8px;font-weight:800;color:#7c3aed;text-align:center;">${v}</td></tr>`).join('');
+
+    const errTypeRows = Object.entries(byErrType).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+        `<tr><td style="padding:5px 8px;">${k}</td><td style="padding:5px 8px;font-weight:800;color:#dc2626;text-align:center;">${v}</td></tr>`).join('');
+
+    // Drug error ranking — only count integers (from rxFound field)
+    const drugErrRanking = Object.entries(byErrDrug)
+        .map(([k,v]) => [k, Math.round(v)])
+        .filter(([,v]) => v > 0)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0, 10);
+    const drugErrRows = drugErrRanking.map(([k,v], idx) => {
+        const medal = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':'';
+        return `<tr><td style="padding:5px 8px;">${medal} ${k}</td><td style="padding:5px 8px;font-weight:800;color:#dc2626;text-align:center;">${v}</td></tr>`;
+    }).join('');
+
+    // Combined detail rows (verified + error)
+    const detailRows = [...log].reverse().map(e => {
+        const isErr = e.type === 'error';
+        const dur = e.durationMs ? Math.round(e.durationMs/60000)+' นาที' : '—';
+        const statusCell = isErr
+            ? `<td style="padding:6px 8px;"><span style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:800;">🚨 ERROR</span></td>`
+            : `<td style="padding:6px 8px;"><span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:800;">✅ ตรวจสอบแล้ว</span></td>`;
+        const detail = isErr
+            ? (e.errorTypes||[]).map(t=>`<span style="font-size:9px;background:#fee2e2;color:#dc2626;border-radius:3px;padding:1px 4px;margin-right:2px;">${t.label}</span>`).join('')
+            : (e.note||'—');
+        return `<tr style="border-bottom:1px solid #f1f5f9;background:${isErr?'#fff5f5':'#fff'}">
+            <td style="padding:6px 8px;font-size:11px;color:#64748b;white-space:nowrap;">${e.verifiedAtDisplay}</td>
+            <td style="padding:6px 8px;font-size:11px;font-weight:700;">${e.verifiedBy}</td>
+            <td style="padding:6px 8px;font-size:11px;color:#4f46e5;font-weight:700;">${e.protocol}</td>
+            ${statusCell}
+            <td style="padding:6px 8px;font-size:11px;text-align:center;">${dur}</td>
+            <td style="padding:6px 8px;font-size:11px;">${detail}</td>
+        </tr>`;
+    }).join('');
+
+    el.innerHTML = `
+        <!-- Summary stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+            ${statBox('📋','ใบสั่งยาทั้งหมด', totalOrders, '#334155')}
+            ${statBox('✅','ตรวจสอบแล้ว', verifiedLog.length, '#059669')}
+            ${statBox('🚨','พบ Error', errorLog.length, '#dc2626')}
+            ${statBox('⏱','เวลาเฉลี่ย/ใบ', avgDur !== null ? avgDur+' นาที' : '—', '#0891b2')}
+        </div>
+
+        <!-- Error interception highlight -->
+        <div style="background:linear-gradient(135deg,#fef2f2,#fdf4ff);border:2px solid #fca5a5;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+            <div style="font-size:12px;font-weight:900;color:#991b1b;margin-bottom:10px;">🚨 ผลการดักจับ Error (Medication Error Interception)</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+                ${statBox('🚨','Error ที่ดักจับได้', errorLog.length, '#dc2626')}
+                ${statBox('🔴','CRITICAL Errors', criticalCount, '#991b1b')}
+                ${statBox('📊','Error Interception Rate', errorRate+'%', '#9333ea')}
+                ${statBox('👩‍⚕️','เภสัชกรที่พบ Error', Object.keys(byErrPharm).length, '#dc2626')}
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+            <!-- By pharmacist -->
+            <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+                <div style="background:#f5f3ff;padding:8px 12px;font-size:11px;font-weight:800;color:#4f46e5;border-bottom:1px solid #e8edf5;">👩‍⚕️ ผลงานต่อเภสัชกร</div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                    <thead><tr style="background:#f8fafc;">
+                        <th style="padding:5px 8px;text-align:left;font-size:10px;color:#64748b;">ชื่อ</th>
+                        <th style="padding:5px 8px;text-align:center;font-size:10px;color:#4f46e5;">✅</th>
+                        <th style="padding:5px 8px;text-align:center;font-size:10px;color:#dc2626;">🚨</th>
+                    </tr></thead>
+                    <tbody>${pharmRows||'<tr><td colspan="3" style="padding:8px;text-align:center;color:#94a3b8;font-size:11px;">ไม่มีข้อมูล</td></tr>'}</tbody>
+                </table>
+            </div>
+            <!-- By protocol -->
+            <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+                <div style="background:#faf5ff;padding:8px 12px;font-size:11px;font-weight:800;color:#7c3aed;border-bottom:1px solid #e8edf5;">🧬 ใบสั่งยาต่อสูตร</div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;"><tbody>${protoRows||'<tr><td colspan="2" style="padding:8px;text-align:center;color:#94a3b8;font-size:11px;">ไม่มีข้อมูล</td></tr>'}</tbody></table>
+            </div>
+            <!-- By error type -->
+            <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+                <div style="background:#fef2f2;padding:8px 12px;font-size:11px;font-weight:800;color:#dc2626;border-bottom:1px solid #e8edf5;">🚨 Error ตามประเภท</div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;"><tbody>${errTypeRows||'<tr><td colspan="2" style="padding:8px;text-align:center;color:#94a3b8;font-size:11px;">ไม่พบ Error</td></tr>'}</tbody></table>
+            </div>
+            <!-- Drug error ranking -->
+            <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+                <div style="background:#fff7ed;padding:8px 12px;font-size:11px;font-weight:800;color:#c2410c;border-bottom:1px solid #e8edf5;">💊 ยาที่พบ Error บ่อย</div>
+                <table style="width:100%;border-collapse:collapse;font-size:12px;"><tbody>${drugErrRows||'<tr><td colspan="2" style="padding:8px;text-align:center;color:#94a3b8;font-size:11px;">ไม่พบ Error</td></tr>'}</tbody></table>
+            </div>
+        </div>
+
+        <!-- Detail table -->
+        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+            <div style="background:#f8fafc;padding:8px 12px;font-size:11px;font-weight:800;color:#334155;border-bottom:1px solid #e8edf5;">📄 รายละเอียดทั้งหมด (ล่าสุดก่อน)</div>
+            <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                <thead><tr style="background:#f1f5f9;">
+                    <th style="padding:7px 8px;text-align:left;font-size:10px;color:#64748b;font-weight:800;white-space:nowrap;">วันที่-เวลา</th>
+                    <th style="padding:7px 8px;text-align:left;font-size:10px;color:#64748b;font-weight:800;">ผู้ตรวจสอบ</th>
+                    <th style="padding:7px 8px;text-align:left;font-size:10px;color:#64748b;font-weight:800;">สูตรยา</th>
+                    <th style="padding:7px 8px;text-align:center;font-size:10px;color:#64748b;font-weight:800;">สถานะ</th>
+                    <th style="padding:7px 8px;text-align:center;font-size:10px;color:#64748b;font-weight:800;">ระยะเวลา</th>
+                    <th style="padding:7px 8px;text-align:left;font-size:10px;color:#64748b;font-weight:800;">รายละเอียด</th>
+                </tr></thead>
+                <tbody>${detailRows}</tbody>
+            </table>
+            </div>
+        </div>`;
+}
+
+function exportReportCSV() {
+    const log = getFilteredLog();
+    if (!log.length) { alert('ไม่มีข้อมูล'); return; }
+    const rows = [['วันที่-เวลา','ผู้ตรวจสอบ','Username','สูตรยา','สถานะ','ประเภท Error','Rx ที่พบ','Rx ที่ถูกต้อง','การดำเนินการ','BSA','CrCl','สิทธิ','ระยะเวลา(นาที)','บันทึก']];
+    log.forEach(e => {
+        const isErr = e.type === 'error';
+        rows.push([
+            e.verifiedAtDisplay, e.verifiedBy, e.username, e.protocol,
+            isErr ? 'พบ Error' : 'ตรวจสอบแล้ว',
+            isErr ? (e.errorTypes||[]).map(t=>t.label).join('; ') : '',
+            isErr ? (e.rxFound||'') : '',
+            isErr ? (e.rxCorrect||'') : '',
+            isErr ? (e.action||'') : '',
+            e.patient?.bsa||'', e.patient?.crcl||'',
+            e.patient?.coverage||'',
+            e.durationMs ? Math.round(e.durationMs/60000) : '',
+            e.note||''
+        ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `OncoChex_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+}
+
+// ─── Add Report button to header ─────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+    // Insert report button into protocol bar
+    const pbar = document.getElementById('protocol-bar');
+    if (pbar) {
+        const btn = document.createElement('button');
+        btn.onclick = openReportModal;
+        btn.style.cssText = 'background:#f5f3ff;border:1.5px solid #c4b5fd;color:#7c3aed;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px;';
+        btn.innerHTML = '📊 รายงาน';
+        pbar.appendChild(btn);
+    }
+});
 
 // Biometric listeners
 document.querySelectorAll('#ht,#wt,#age,#sex,#scr,#wbc,#neut,#hb,#plt,#anc,#ast,#alt,#alp,#bili').forEach(el => {
